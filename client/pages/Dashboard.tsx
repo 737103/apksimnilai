@@ -243,6 +243,40 @@ function DataSiswaForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:row-span-3 flex items-start gap-3">
+                {preview ? (
+                  <img src={preview} alt="Preview foto siswa" className="h-24 w-24 rounded-md object-cover border" />
+                ) : (
+                  <div className="h-24 w-24 rounded-md border bg-muted/30 flex items-center justify-center text-xs text-muted-foreground">
+                    Foto
+                  </div>
+                )}
+                <div className="flex-1">
+                  <FormField
+                    control={form.control}
+                    name="foto"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Foto Siswa (JPG/PNG, maks 500 KB)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            accept="image/png, image/jpeg"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              form.setValue("foto", file as File | undefined, { shouldValidate: true });
+                              if (file) setPreview(URL.createObjectURL(file));
+                              else setPreview(null);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
               <FormField
                 control={form.control}
                 name="namaLengkap"
