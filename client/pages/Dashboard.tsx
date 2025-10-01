@@ -553,6 +553,23 @@ function DataSiswaForm() {
                   />
                 ))}
               </div>
+              {keteranganValue?.includes("Lainnya") && (
+                <div className="mt-3">
+                  <FormField
+                    control={form.control}
+                    name="keteranganLain"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Tuliskan Keterangan Lainnya</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Keterangan lainnya" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
