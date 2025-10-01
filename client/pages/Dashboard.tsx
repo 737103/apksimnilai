@@ -409,6 +409,23 @@ function DataSiswaForm() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {pekerjaanOrtuValue === "Lainnya" && (
+                      <div className="mt-2">
+                        <FormField
+                          control={form.control}
+                          name="pekerjaanOrtuLain"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">Tuliskan Pekerjaan Lainnya</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Pekerjaan lainnya" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
