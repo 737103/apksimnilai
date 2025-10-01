@@ -14,13 +14,23 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, CalendarCheck2, ClipboardList, FileSpreadsheet, LogOut } from "lucide-react";
+import { BarChart3, CalendarCheck2, ClipboardList, FileSpreadsheet, LogOut, Users2 } from "lucide-react";
 import { logout } from "@/lib/auth";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 const menu = [
   { to: "/dashboard", label: "Statistik", icon: BarChart3, end: true },
+  { to: "/dashboard/siswa", label: "Data Siswa", icon: Users2 },
   { to: "/dashboard/nilai", label: "Input Nilai Siswa", icon: ClipboardList },
   { to: "/dashboard/kehadiran", label: "Input Kehadiran Siswa", icon: CalendarCheck2 },
   { to: "/dashboard/laporan", label: "Kelola Laporan Siswa", icon: FileSpreadsheet },
@@ -47,7 +57,7 @@ export default function Dashboard() {
             {menu.map((m) => (
               <SidebarMenuItem key={m.to}>
                 <SidebarMenuButton asChild isActive={false}>
-                  <NavLink to={m.to} end={m.end as boolean | undefined} className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                  <NavLink to={m.to} end={m.end as boolean | undefined} className={({ isActive }) => (isActive ? "data-[active=true]" : undefined)}>
                     <m.icon className="shrink-0" />
                     <span>{m.label}</span>
                   </NavLink>
@@ -73,6 +83,7 @@ export default function Dashboard() {
         <main className="p-4 md:p-6 grid gap-4">
           <Routes>
             <Route index element={<StatistikSection />} />
+            <Route path="siswa" element={<DataSiswaForm />} />
             <Route path="nilai" element={<Placeholder title="Input Nilai Siswa" />} />
             <Route path="kehadiran" element={<Placeholder title="Input Kehadiran Siswa" />} />
             <Route path="laporan" element={<Placeholder title="Kelola Laporan Siswa" />} />
@@ -130,6 +141,345 @@ function Stat({ number, label }: { number: string; label: string }) {
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-extrabold">{number}</div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const agamaOptions = [
+  "Islam",
+  "Kristen",
+  "Khatolik",
+  "Hindu",
+  "Budha",
+  "Kepercayaan",
+  "Konghucu",
+] as const;
+
+const pekerjaanOptions = [
+  "Petani",
+  "Pekebun",
+  "Buruh Harian Lepas",
+  "Karyawan Swasta",
+  "Pegawai Negeri Sipil/ASN",
+  "Lainnya",
+] as const;
+
+const statusOptions = ["Aktif", "Meninggal", "Pindahan", "Pindah Sekolah"] as const;
+
+const ketOptions = [
+  "Siswa Berprestasi",
+  "Siswa Kurang Mampu",
+  "Penerima KIP",
+  "Penerima Beasiswa",
+  "Lainnya",
+] as const;
+
+const schema = z.object({
+  namaLengkap: z.string().min(2),
+  nisn: z.string().min(1),
+  nis: z.string().min(1),
+  jenisKelamin: z.enum(["Laki-laki", "Perempuan"]),
+  agama: z.enum(agamaOptions),
+  alamatDomisili: z.string().min(1),
+  namaAyah: z.string().min(1),
+  namaIbu: z.string().min(1),
+  pekerjaanOrtu: z.enum(pekerjaanOptions),
+  jumlahSaudara: z.coerce.number().int().min(0),
+  alamatOrtu: z.string().min(1),
+  asalSekolah: z.string().min(1),
+  statusSiswa: z.enum(statusOptions),
+  keterangan: z.array(z.enum(ketOptions)).optional().default([]),
+});
+
+function DataSiswaForm() {
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      namaLengkap: "",
+      nisn: "",
+      nis: "",
+      jenisKelamin: "Laki-laki",
+      agama: "Islam",
+      alamatDomisili: "",
+      namaAyah: "",
+      namaIbu: "",
+      pekerjaanOrtu: "Petani",
+      jumlahSaudara: 0,
+      alamatOrtu: "",
+      asalSekolah: "",
+      statusSiswa: "Aktif",
+      keterangan: [],
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof schema>) => {
+    toast.success("Data siswa siap disimpan", {
+      description: "Integrasi Supabase dapat diaktifkan setelah koneksi.",
+    });
+    console.log("data_siswa", values);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Data Siswa</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="namaLengkap"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nama Lengkap Siswa</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nama lengkap" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="asalSekolah"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Asal Sekolah</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Asal sekolah" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="nisn"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>NISN</FormLabel>
+                    <FormControl>
+                      <Input inputMode="numeric" placeholder="NISN" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="nis"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>NIS</FormLabel>
+                    <FormControl>
+                      <Input inputMode="numeric" placeholder="NIS" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="jenisKelamin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Jenis Kelamin</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Laki-laki">Laki-laki</SelectItem>
+                        <SelectItem value="Perempuan">Perempuan</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="agama"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Agama</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {agamaOptions.map((a) => (
+                          <SelectItem key={a} value={a}>
+                            {a}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="pekerjaanOrtu"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pekerjaan Orang Tua</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {pekerjaanOptions.map((p) => (
+                          <SelectItem key={p} value={p}>
+                            {p}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="statusSiswa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status Siswa</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {statusOptions.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="jumlahSaudara"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Jumlah Saudara</FormLabel>
+                    <FormControl>
+                      <Input type="number" min={0} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="namaAyah"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nama Orang Tua (Ayah)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nama Ayah" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="namaIbu"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nama Orang Tua (Ibu)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nama Ibu" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="alamatDomisili"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Alamat Domisili</FormLabel>
+                  <FormControl>
+                    <Textarea rows={3} placeholder="Alamat domisili" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="alamatOrtu"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Alamat Orang Tua</FormLabel>
+                  <FormControl>
+                    <Textarea rows={3} placeholder="Alamat orang tua" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div>
+              <FormLabel>Keterangan Lainnya</FormLabel>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+                {ketOptions.map((k) => (
+                  <FormField
+                    key={k}
+                    control={form.control}
+                    name="keterangan"
+                    render={({ field }) => {
+                      const checked = field.value?.includes(k);
+                      return (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                const arr = new Set(field.value || []);
+                                if (v) arr.add(k);
+                                else arr.delete(k);
+                                field.onChange(Array.from(arr));
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal">{k}</FormLabel>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="submit">Simpan</Button>
+            </div>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
