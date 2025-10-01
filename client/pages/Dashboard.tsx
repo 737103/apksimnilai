@@ -225,6 +225,9 @@ function DataSiswaForm() {
     resolver: zodResolver(schema),
     defaultValues: {
       namaLengkap: "",
+      nik: "",
+      tempatLahir: "",
+      tanggalLahir: "",
       nisn: "",
       nis: "",
       jenisKelamin: "Laki-laki",
