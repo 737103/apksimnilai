@@ -179,6 +179,12 @@ const ketOptions = [
 const schema = z
   .object({
     namaLengkap: z.string().min(2),
+    nik: z.string().regex(/^\d{16}$/, "NIK harus 16 digit"),
+    tempatLahir: z.string().min(1),
+    tanggalLahir: z
+      .string()
+      .min(1)
+      .refine((v) => !Number.isNaN(new Date(v).getTime()), "Tanggal tidak valid"),
     nisn: z.string().min(1),
     nis: z.string().min(1),
     jenisKelamin: z.enum(["Laki-laki", "Perempuan"]),
