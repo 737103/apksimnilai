@@ -227,15 +227,19 @@ function DataSiswaForm() {
       namaAyah: "",
       namaIbu: "",
       pekerjaanOrtu: "Petani",
+      pekerjaanOrtuLain: "",
       jumlahSaudara: 0,
       alamatOrtu: "",
       asalSekolah: "",
       statusSiswa: "Aktif",
       keterangan: [],
+      keteranganLain: "",
       foto: undefined,
     },
   });
 
+  const pekerjaanOrtuValue = form.watch("pekerjaanOrtu");
+  const keteranganValue = form.watch("keterangan");
   const [preview, setPreview] = useState<string | null>(null);
 
   const onSubmit = (values: z.infer<typeof schema>) => {
