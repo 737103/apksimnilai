@@ -221,8 +221,11 @@ function DataSiswaForm() {
       asalSekolah: "",
       statusSiswa: "Aktif",
       keterangan: [],
+      foto: undefined,
     },
   });
+
+  const [preview, setPreview] = useState<string | null>(null);
 
   const onSubmit = (values: z.infer<typeof schema>) => {
     toast.success("Data siswa siap disimpan", {
