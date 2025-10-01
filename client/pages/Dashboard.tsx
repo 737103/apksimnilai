@@ -191,6 +191,16 @@ const schema = z.object({
   asalSekolah: z.string().min(1),
   statusSiswa: z.enum(statusOptions),
   keterangan: z.array(z.enum(ketOptions)).optional().default([]),
+  foto: z
+    .any()
+    .optional()
+    .refine((file) => !file || file instanceof File, "File tidak valid")
+    .refine((file) => !file || file.size <= 500 * 1024, "Ukuran maksimal 500 KB")
+    .refine(
+      (file) =>
+        !file || ["image/jpeg", "image/png", "image/jpg"].includes(file.type),
+      "Format harus JPG/JPEG/PNG",
+    ),
 });
 
 function DataSiswaForm() {
