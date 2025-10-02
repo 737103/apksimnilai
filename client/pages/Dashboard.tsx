@@ -726,7 +726,7 @@ function InputNilaiPage() {
   });
 
   const mpValue = form.watch("mataPelajaran");
-  const { fields, append, remove } = require("react-hook-form").useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "kompetensi",
   });
