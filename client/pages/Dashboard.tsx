@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, CalendarCheck2, ClipboardList, FileSpreadsheet, LogOut, Users2 } from "lucide-react";
+import { BarChart3, CalendarCheck2, ClipboardList, FileSpreadsheet, LogOut, Users2, Pencil, Trash2 } from "lucide-react";
 import { logout } from "@/lib/auth";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
