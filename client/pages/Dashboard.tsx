@@ -221,6 +221,14 @@ const schema = z
   });
 
 function DataSiswaForm() {
+  const [students, setStudents] = useState<any[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("sips_students") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
