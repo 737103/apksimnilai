@@ -663,3 +663,245 @@ function Placeholder({ title }: { title: string }) {
     </Card>
   );
 }
+
+const mpOptions = [
+  "Bahasa Indonesia",
+  "Bahasa Inggris",
+  "Matematika",
+  "IPA",
+  "IPS",
+  "Lainnya",
+] as const;
+
+const gradeSchema = z
+  .object({
+    studentId: z.string(),
+    namaLengkap: z.string(),
+    nik: z.string(),
+    nisn: z.string(),
+    nis: z.string(),
+    mataPelajaran: z.enum(mpOptions),
+    mataPelajaranLain: z.string().optional(),
+    kompetensi: z.array(z.string().min(1)).min(1, "Tambahkan minimal 1 kompetensi"),
+    nilai: z.coerce.number().min(0).max(100),
+    keterangan: z.string().optional(),
+  })
+  .refine((d) => d.mataPelajaran !== "Lainnya" || !!d.mataPelajaranLain?.trim(), {
+    path: ["mataPelajaranLain"],
+    message: "Harap isi mata pelajaran lainnya",
+  });
+
+function InputNilaiPage() {
+  const [query, setQuery] = React.useState("");
+  const [selected, setSelected] = React.useState<any | null>(null);
+  const students: any[] = React.useMemo(
+    () => JSON.parse(localStorage.getItem("sips_students") || "[]"),
+    [],
+  );
+
+  const filtered = React.useMemo(() => {
+    if (!query.trim()) return [] as any[];
+    const q = query.toLowerCase();
+    return students.filter((s) =>
+      [s.namaLengkap, s.nik, s.nisn, s.nis].some((v: string) =>
+        String(v || "").toLowerCase().includes(q),
+      ),
+    );
+  }, [query, students]);
+
+  const form = useForm<z.infer<typeof gradeSchema>>({
+    resolver: zodResolver(gradeSchema),
+    defaultValues: {
+      studentId: "",
+      namaLengkap: "",
+      nik: "",
+      nisn: "",
+      nis: "",
+      mataPelajaran: "Bahasa Indonesia",
+      mataPelajaranLain: "",
+      kompetensi: [""],
+      nilai: 0,
+      keterangan: "",
+    },
+  });
+
+  const mpValue = form.watch("mataPelajaran");
+  const { fields, append, remove } = require("react-hook-form").useFieldArray({
+    control: form.control,
+    name: "kompetensi",
+  });
+
+  const pickStudent = (s: any) => {
+    setSelected(s);
+    form.reset({
+      studentId: s.id,
+      namaLengkap: s.namaLengkap,
+      nik: s.nik,
+      nisn: s.nisn,
+      nis: s.nis,
+      mataPelajaran: "Bahasa Indonesia",
+      mataPelajaranLain: "",
+      kompetensi: [""],
+      nilai: 0,
+      keterangan: "",
+    });
+  };
+
+  const submitGrade = (v: z.infer<typeof gradeSchema>) => {
+    const grades = JSON.parse(localStorage.getItem("sips_grades") || "[]");
+    const payload = { id: crypto.randomUUID?.() || String(Date.now()), ...v, tanggal: new Date().toISOString() };
+    localStorage.setItem("sips_grades", JSON.stringify([payload, ...grades]));
+    toast.success("Nilai tersimpan");
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Input Nilai Siswa</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Cari Siswa (Nama, NIK, NISN, NIS)</label>
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ketik untuk mencari..." />
+          {query && (
+            <div className="mt-2 max-h-56 overflow-auto rounded-md border divide-y">
+              {filtered.length === 0 && (
+                <div className="p-3 text-sm text-muted-foreground">Tidak ada hasil</div>
+              )}
+              {filtered.map((s) => (
+                <button
+                  type="button"
+                  key={s.id}
+                  className="w-full text-left p-3 hover:bg-accent"
+                  onClick={() => pickStudent(s)}
+                >
+                  <div className="font-medium">{s.namaLengkap}</div>
+                  <div className="text-xs text-muted-foreground">NIK {s.nik} • NISN {s.nisn} • NIS {s.nis}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {selected && (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(submitGrade)} className="grid gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormItem>
+                  <FormLabel>Nama Siswa</FormLabel>
+                  <FormControl>
+                    <Input readOnly {...form.register("namaLengkap")} />
+                  </FormControl>
+                </FormItem>
+                <FormItem>
+                  <FormLabel>NIK</FormLabel>
+                  <FormControl>
+                    <Input readOnly {...form.register("nik")} />
+                  </FormControl>
+                </FormItem>
+                <FormItem>
+                  <FormLabel>NISN</FormLabel>
+                  <FormControl>
+                    <Input readOnly {...form.register("nisn")} />
+                  </FormControl>
+                </FormItem>
+                <FormItem>
+                  <FormLabel>NIS</FormLabel>
+                  <FormControl>
+                    <Input readOnly {...form.register("nis")} />
+                  </FormControl>
+                </FormItem>
+                <FormField
+                  control={form.control}
+                  name="mataPelajaran"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mata Pelajaran</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {mpOptions.map((o) => (
+                            <SelectItem key={o} value={o}>
+                              {o}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {mpValue === "Lainnya" && (
+                        <div className="mt-2">
+                          <FormField
+                            control={form.control}
+                            name="mataPelajaranLain"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Tuliskan mata pelajaran lainnya</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Mata pelajaran lainnya" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <FormLabel>Kompetensi Diharapkan</FormLabel>
+                {fields.map((f: any, idx: number) => (
+                  <div key={f.id} className="flex gap-2">
+                    <Input {...form.register(`kompetensi.${idx}` as const)} placeholder={`Kompetensi ke-${idx + 1}`} />
+                    <Button type="button" variant="secondary" onClick={() => remove(idx)} disabled={fields.length === 1}>
+                      Hapus
+                    </Button>
+                  </div>
+                ))}
+                <Button type="button" variant="outline" onClick={() => append("")}>Tambah Kompetensi</Button>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="nilai"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nilai</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" min={0} max={100} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="keterangan"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Keterangan Kompetensi</FormLabel>
+                    <FormControl>
+                      <Textarea rows={3} placeholder="Catatan/pengamatan" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end">
+                <Button type="submit">Simpan Nilai</Button>
+              </div>
+            </form>
+          </Form>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
