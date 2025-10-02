@@ -252,10 +252,29 @@ function DataSiswaForm() {
   const [preview, setPreview] = useState<string | null>(null);
 
   const onSubmit = (values: z.infer<typeof schema>) => {
-    toast.success("Data siswa siap disimpan", {
-      description: "Integrasi Supabase dapat diaktifkan setelah koneksi.",
-    });
-    console.log("data_siswa", values);
+    const students = JSON.parse(localStorage.getItem("sips_students") || "[]");
+    const record = {
+      id: crypto.randomUUID?.() || String(Date.now()),
+      namaLengkap: values.namaLengkap,
+      nik: values.nik,
+      nisn: values.nisn,
+      nis: values.nis,
+      jenisKelamin: values.jenisKelamin,
+      agama: values.agama,
+      alamatDomisili: values.alamatDomisili,
+      namaAyah: values.namaAyah,
+      namaIbu: values.namaIbu,
+      pekerjaanOrtu: values.pekerjaanOrtu,
+      pekerjaanOrtuLain: values.pekerjaanOrtuLain,
+      jumlahSaudara: values.jumlahSaudara,
+      alamatOrtu: values.alamatOrtu,
+      asalSekolah: values.asalSekolah,
+      statusSiswa: values.statusSiswa,
+      keterangan: values.keterangan,
+      keteranganLain: values.keteranganLain,
+    };
+    localStorage.setItem("sips_students", JSON.stringify([record, ...students]));
+    toast.success("Data siswa tersimpan");
   };
 
   return (
