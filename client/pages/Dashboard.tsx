@@ -259,12 +259,13 @@ function DataSiswaForm() {
   const pekerjaanOrtuValue = form.watch("pekerjaanOrtu");
   const keteranganValue = form.watch("keterangan");
   const [preview, setPreview] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const onSubmit = async (values: z.infer<typeof schema>) => {
-    const curr = JSON.parse(localStorage.getItem("sips_students") || "[]");
+    const curr: any[] = JSON.parse(localStorage.getItem("sips_students") || "[]");
 
-    let fotoUrl: string | undefined = undefined;
     const file = values.foto as File | undefined;
+    let fotoUrl: string | undefined = undefined;
     if (file) {
       fotoUrl = await new Promise<string>((resolve) => {
         const reader = new FileReader();
@@ -273,30 +274,67 @@ function DataSiswaForm() {
       });
     }
 
-    const record = {
-      id: crypto.randomUUID?.() || String(Date.now()),
-      namaLengkap: values.namaLengkap,
-      nik: values.nik,
-      nisn: values.nisn,
-      nis: values.nis,
-      jenisKelamin: values.jenisKelamin,
-      agama: values.agama,
-      alamatDomisili: values.alamatDomisili,
-      namaAyah: values.namaAyah,
-      namaIbu: values.namaIbu,
-      pekerjaanOrtu: values.pekerjaanOrtu,
-      pekerjaanOrtuLain: values.pekerjaanOrtuLain,
-      jumlahSaudara: values.jumlahSaudara,
-      alamatOrtu: values.alamatOrtu,
-      asalSekolah: values.asalSekolah,
-      statusSiswa: values.statusSiswa,
-      keterangan: values.keterangan,
-      keteranganLain: values.keteranganLain,
-      fotoUrl,
-    };
-    const next = [record, ...curr];
-    localStorage.setItem("sips_students", JSON.stringify(next));
-    setStudents(next);
+    if (editingId) {
+      const existing = curr.find((s) => s.id === editingId) || {};
+      const updated = {
+        ...existing,
+        id: editingId,
+        namaLengkap: values.namaLengkap,
+        nik: values.nik,
+        nisn: values.nisn,
+        nis: values.nis,
+        tempatLahir: values.tempatLahir,
+        tanggalLahir: values.tanggalLahir,
+        jenisKelamin: values.jenisKelamin,
+        agama: values.agama,
+        alamatDomisili: values.alamatDomisili,
+        namaAyah: values.namaAyah,
+        namaIbu: values.namaIbu,
+        pekerjaanOrtu: values.pekerjaanOrtu,
+        pekerjaanOrtuLain: values.pekerjaanOrtuLain,
+        jumlahSaudara: values.jumlahSaudara,
+        alamatOrtu: values.alamatOrtu,
+        asalSekolah: values.asalSekolah,
+        statusSiswa: values.statusSiswa,
+        keterangan: values.keterangan,
+        keteranganLain: values.keteranganLain,
+        fotoUrl: fotoUrl ?? existing.fotoUrl,
+      };
+      const next = curr.map((s) => (s.id === editingId ? updated : s));
+      localStorage.setItem("sips_students", JSON.stringify(next));
+      setStudents(next);
+      setEditingId(null);
+      toast.success("Data siswa diperbarui");
+    } else {
+      const record = {
+        id: crypto.randomUUID?.() || String(Date.now()),
+        namaLengkap: values.namaLengkap,
+        nik: values.nik,
+        nisn: values.nisn,
+        nis: values.nis,
+        tempatLahir: values.tempatLahir,
+        tanggalLahir: values.tanggalLahir,
+        jenisKelamin: values.jenisKelamin,
+        agama: values.agama,
+        alamatDomisili: values.alamatDomisili,
+        namaAyah: values.namaAyah,
+        namaIbu: values.namaIbu,
+        pekerjaanOrtu: values.pekerjaanOrtu,
+        pekerjaanOrtuLain: values.pekerjaanOrtuLain,
+        jumlahSaudara: values.jumlahSaudara,
+        alamatOrtu: values.alamatOrtu,
+        asalSekolah: values.asalSekolah,
+        statusSiswa: values.statusSiswa,
+        keterangan: values.keterangan,
+        keteranganLain: values.keteranganLain,
+        fotoUrl,
+      };
+      const next = [record, ...curr];
+      localStorage.setItem("sips_students", JSON.stringify(next));
+      setStudents(next);
+      toast.success("Data siswa tersimpan");
+    }
+
     setPreview(null);
     form.reset({
       namaLengkap: "",
@@ -687,7 +725,31 @@ function DataSiswaForm() {
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
-              <Button type="submit">Simpan</Button>
+              {editingId && (
+                <Button type="button" variant="secondary" onClick={() => { setEditingId(null); setPreview(null); form.reset({
+                  namaLengkap: "",
+                  nik: "",
+                  tempatLahir: "",
+                  tanggalLahir: "",
+                  nisn: "",
+                  nis: "",
+                  jenisKelamin: "Laki-laki",
+                  agama: "Islam",
+                  alamatDomisili: "",
+                  namaAyah: "",
+                  namaIbu: "",
+                  pekerjaanOrtu: "Petani",
+                  pekerjaanOrtuLain: "",
+                  jumlahSaudara: 0,
+                  alamatOrtu: "",
+                  asalSekolah: "",
+                  statusSiswa: "Aktif",
+                  keterangan: [],
+                  keteranganLain: "",
+                  foto: undefined,
+                }); }}>Batal</Button>
+              )}
+              <Button type="submit">{editingId ? "Perbarui" : "Simpan"}</Button>
             </div>
           </form>
         </Form>
@@ -711,6 +773,7 @@ function DataSiswaForm() {
                     <TableHead>JK</TableHead>
                     <TableHead>Agama</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="w-28">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -732,6 +795,16 @@ function DataSiswaForm() {
                       <TableCell>{s.jenisKelamin}</TableCell>
                       <TableCell>{s.agama}</TableCell>
                       <TableCell>{s.statusSiswa}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(s)}>
+                            <Pencil className="mr-1 h-4 w-4" /> Edit
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete(s.id)}>
+                            <Trash2 className="mr-1 h-4 w-4" /> Hapus
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -761,6 +834,14 @@ function DataSiswaForm() {
                       <div><span className="text-muted-foreground">Agama:</span> {s.agama}</div>
                       <div className="col-span-2"><span className="text-muted-foreground">Status:</span> {s.statusSiswa}</div>
                     </div>
+                    <div className="mt-3 flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => handleEdit(s)} className="flex-1">
+                        <Pencil className="mr-1 h-4 w-4" /> Edit
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => handleDelete(s.id)} className="flex-1">
+                        <Trash2 className="mr-1 h-4 w-4" /> Hapus
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -770,6 +851,42 @@ function DataSiswaForm() {
       </Card>
     </div>
   );
+
+  function handleEdit(s: any) {
+    setEditingId(s.id);
+    setPreview(s.fotoUrl || null);
+    form.reset({
+      namaLengkap: s.namaLengkap || "",
+      nik: s.nik || "",
+      tempatLahir: s.tempatLahir || "",
+      tanggalLahir: s.tanggalLahir || "",
+      nisn: s.nisn || "",
+      nis: s.nis || "",
+      jenisKelamin: s.jenisKelamin || "Laki-laki",
+      agama: s.agama || "Islam",
+      alamatDomisili: s.alamatDomisili || "",
+      namaAyah: s.namaAyah || "",
+      namaIbu: s.namaIbu || "",
+      pekerjaanOrtu: s.pekerjaanOrtu || "Petani",
+      pekerjaanOrtuLain: s.pekerjaanOrtuLain || "",
+      jumlahSaudara: s.jumlahSaudara ?? 0,
+      alamatOrtu: s.alamatOrtu || "",
+      asalSekolah: s.asalSekolah || "",
+      statusSiswa: s.statusSiswa || "Aktif",
+      keterangan: s.keterangan || [],
+      keteranganLain: s.keteranganLain || "",
+      foto: undefined,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleDelete(id: string) {
+    if (!confirm("Hapus data siswa ini?")) return;
+    const next = students.filter((x) => x.id !== id);
+    localStorage.setItem("sips_students", JSON.stringify(next));
+    setStudents(next);
+    toast.success("Data siswa dihapus");
+  }
 }
 
 function Placeholder({ title }: { title: string }) {
