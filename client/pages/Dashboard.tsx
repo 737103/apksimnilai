@@ -312,9 +312,10 @@ function DataSiswaForm() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Data Siswa</CardTitle>
+    <div className="grid gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Siswa</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -680,6 +681,64 @@ function DataSiswaForm() {
         </Form>
       </CardContent>
     </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Siswa Tersimpan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto -mx-2 md:mx-0">
+            <div className="min-w-max md:min-w-0">
+              <Table className="hidden md:table">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nama</TableHead>
+                    <TableHead>NIK</TableHead>
+                    <TableHead>NISN</TableHead>
+                    <TableHead>NIS</TableHead>
+                    <TableHead>JK</TableHead>
+                    <TableHead>Agama</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {students.map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-medium">{s.namaLengkap}</TableCell>
+                      <TableCell>{s.nik}</TableCell>
+                      <TableCell>{s.nisn}</TableCell>
+                      <TableCell>{s.nis}</TableCell>
+                      <TableCell>{s.jenisKelamin}</TableCell>
+                      <TableCell>{s.agama}</TableCell>
+                      <TableCell>{s.statusSiswa}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              <div className="md:hidden grid gap-3">
+                {students.length === 0 && (
+                  <div className="text-sm text-muted-foreground">Belum ada data siswa.</div>
+                )}
+                {students.map((s) => (
+                  <div key={s.id} className="rounded-md border p-3 bg-card">
+                    <div className="font-semibold">{s.namaLengkap}</div>
+                    <div className="text-xs text-muted-foreground">NIK {s.nik}</div>
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                      <div><span className="text-muted-foreground">NISN:</span> {s.nisn}</div>
+                      <div><span className="text-muted-foreground">NIS:</span> {s.nis}</div>
+                      <div><span className="text-muted-foreground">JK:</span> {s.jenisKelamin}</div>
+                      <div><span className="text-muted-foreground">Agama:</span> {s.agama}</div>
+                      <div className="col-span-2"><span className="text-muted-foreground">Status:</span> {s.statusSiswa}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
