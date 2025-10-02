@@ -260,7 +260,7 @@ function DataSiswaForm() {
   const [preview, setPreview] = useState<string | null>(null);
 
   const onSubmit = (values: z.infer<typeof schema>) => {
-    const students = JSON.parse(localStorage.getItem("sips_students") || "[]");
+    const curr = JSON.parse(localStorage.getItem("sips_students") || "[]");
     const record = {
       id: crypto.randomUUID?.() || String(Date.now()),
       namaLengkap: values.namaLengkap,
@@ -281,7 +281,32 @@ function DataSiswaForm() {
       keterangan: values.keterangan,
       keteranganLain: values.keteranganLain,
     };
-    localStorage.setItem("sips_students", JSON.stringify([record, ...students]));
+    const next = [record, ...curr];
+    localStorage.setItem("sips_students", JSON.stringify(next));
+    setStudents(next);
+    setPreview(null);
+    form.reset({
+      namaLengkap: "",
+      nik: "",
+      tempatLahir: "",
+      tanggalLahir: "",
+      nisn: "",
+      nis: "",
+      jenisKelamin: "Laki-laki",
+      agama: "Islam",
+      alamatDomisili: "",
+      namaAyah: "",
+      namaIbu: "",
+      pekerjaanOrtu: "Petani",
+      pekerjaanOrtuLain: "",
+      jumlahSaudara: 0,
+      alamatOrtu: "",
+      asalSekolah: "",
+      statusSiswa: "Aktif",
+      keterangan: [],
+      keteranganLain: "",
+      foto: undefined,
+    });
     toast.success("Data siswa tersimpan");
   };
 
