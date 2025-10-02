@@ -260,8 +260,19 @@ function DataSiswaForm() {
   const keteranganValue = form.watch("keterangan");
   const [preview, setPreview] = useState<string | null>(null);
 
-  const onSubmit = (values: z.infer<typeof schema>) => {
+  const onSubmit = async (values: z.infer<typeof schema>) => {
     const curr = JSON.parse(localStorage.getItem("sips_students") || "[]");
+
+    let fotoUrl: string | undefined = undefined;
+    const file = values.foto as File | undefined;
+    if (file) {
+      fotoUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.readAsDataURL(file);
+      });
+    }
+
     const record = {
       id: crypto.randomUUID?.() || String(Date.now()),
       namaLengkap: values.namaLengkap,
@@ -281,6 +292,7 @@ function DataSiswaForm() {
       statusSiswa: values.statusSiswa,
       keterangan: values.keterangan,
       keteranganLain: values.keteranganLain,
+      fotoUrl,
     };
     const next = [record, ...curr];
     localStorage.setItem("sips_students", JSON.stringify(next));
@@ -704,7 +716,16 @@ function DataSiswaForm() {
                 <TableBody>
                   {students.map((s) => (
                     <TableRow key={s.id}>
-                      <TableCell className="font-medium">{s.namaLengkap}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                          {s.fotoUrl ? (
+                            <img src={s.fotoUrl} alt={s.namaLengkap} className="h-8 w-8 rounded object-cover border" />
+                          ) : (
+                            <div className="h-8 w-8 rounded bg-muted border" />
+                          )}
+                          <span>{s.namaLengkap}</span>
+                        </div>
+                      </TableCell>
                       <TableCell>{s.nik}</TableCell>
                       <TableCell>{s.nisn}</TableCell>
                       <TableCell>{s.nis}</TableCell>
@@ -722,8 +743,17 @@ function DataSiswaForm() {
                 )}
                 {students.map((s) => (
                   <div key={s.id} className="rounded-md border p-3 bg-card">
-                    <div className="font-semibold">{s.namaLengkap}</div>
-                    <div className="text-xs text-muted-foreground">NIK {s.nik}</div>
+                    <div className="flex items-center gap-3">
+                      {s.fotoUrl ? (
+                        <img src={s.fotoUrl} alt={s.namaLengkap} className="h-10 w-10 rounded object-cover border" />
+                      ) : (
+                        <div className="h-10 w-10 rounded bg-muted border" />
+                      )}
+                      <div>
+                        <div className="font-semibold">{s.namaLengkap}</div>
+                        <div className="text-xs text-muted-foreground">NIK {s.nik}</div>
+                      </div>
+                    </div>
                     <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
                       <div><span className="text-muted-foreground">NISN:</span> {s.nisn}</div>
                       <div><span className="text-muted-foreground">NIS:</span> {s.nis}</div>
