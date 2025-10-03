@@ -1,0 +1,565 @@
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { 
+  Download, 
+  Upload, 
+  Database, 
+  AlertTriangle,
+  CheckCircle,
+  FileText,
+  Trash2,
+  RefreshCw,
+  Copy,
+  Eye,
+  HardDrive
+} from "lucide-react";
+import { toast } from "sonner";
+import { 
+  exportAllData, 
+  importAllData, 
+  studentManager, 
+  gradeManager, 
+  attendanceManager,
+  getStatistics
+} from "@/lib/data";
+
+export function DataManager() {
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importData, setImportData] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = () => {
+    try {
+      const data = exportAllData();
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `sips-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Data berhasil diekspor");
+    } catch (error) {
+      toast.error("Gagal mengekspor data");
+    }
+  };
+
+  const handleExportStudents = () => {
+    try {
+      const data = JSON.stringify(studentManager.getAll(), null, 2);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `sips-siswa-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Data siswa berhasil diekspor");
+    } catch (error) {
+      toast.error("Gagal mengekspor data siswa");
+    }
+  };
+
+  const handleExportGrades = () => {
+    try {
+      const data = JSON.stringify(gradeManager.getAll(), null, 2);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `sips-nilai-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Data nilai berhasil diekspor");
+    } catch (error) {
+      toast.error("Gagal mengekspor data nilai");
+    }
+  };
+
+  const handleExportAttendance = () => {
+    try {
+      const data = JSON.stringify(attendanceManager.getAll(), null, 2);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `sips-kehadiran-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Data kehadiran berhasil diekspor");
+    } catch (error) {
+      toast.error("Gagal mengekspor data kehadiran");
+    }
+  };
+
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/json") {
+      toast.error("File harus berformat JSON");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setImportData(content);
+      toast.success("File berhasil dibaca");
+    };
+    reader.onerror = () => {
+      toast.error("Gagal membaca file");
+    };
+    reader.readAsText(file);
+  };
+
+  const handlePreviewData = () => {
+    try {
+      const data = exportAllData();
+      setPreviewData(data);
+      setIsPreviewOpen(true);
+    } catch (error) {
+      toast.error("Gagal memuat preview data");
+    }
+  };
+
+  const handleCopyToClipboard = () => {
+    try {
+      const data = exportAllData();
+      navigator.clipboard.writeText(data);
+      toast.success("Data berhasil disalin ke clipboard");
+    } catch (error) {
+      toast.error("Gagal menyalin data");
+    }
+  };
+
+  const handleClearStudents = () => {
+    try {
+      studentManager.clear();
+      toast.success("Data siswa telah dihapus");
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      toast.error("Gagal menghapus data siswa");
+    }
+  };
+
+  const handleClearGrades = () => {
+    try {
+      gradeManager.clear();
+      toast.success("Data nilai telah dihapus");
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      toast.error("Gagal menghapus data nilai");
+    }
+  };
+
+  const handleClearAttendance = () => {
+    try {
+      attendanceManager.clear();
+      toast.success("Data kehadiran telah dihapus");
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      toast.error("Gagal menghapus data kehadiran");
+    }
+  };
+
+  const handleImport = () => {
+    if (!importData.trim()) {
+      toast.error("Data import tidak boleh kosong");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (importAllData(importData)) {
+        toast.success("Data berhasil diimpor");
+        setImportData("");
+        setIsImportOpen(false);
+        // Refresh the page to update all components
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        toast.error("Format data tidak valid");
+      }
+    } catch (error) {
+      toast.error("Gagal mengimpor data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClearAll = () => {
+    if (!confirm("PERINGATAN: Tindakan ini akan menghapus SEMUA data! Apakah Anda yakin?")) {
+      return;
+    }
+    
+    if (!confirm("Data yang dihapus TIDAK DAPAT DIPULIHKAN. Yakin ingin melanjutkan?")) {
+      return;
+    }
+
+    try {
+      studentManager.clear();
+      gradeManager.clear();
+      attendanceManager.clear();
+      toast.success("Semua data telah dihapus");
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      toast.error("Gagal menghapus data");
+    }
+  };
+
+  const stats = {
+    students: studentManager.count,
+    grades: gradeManager.count,
+    attendance: attendanceManager.count,
+  };
+
+  const systemStats = getStatistics();
+
+  return (
+    <div className="space-y-6">
+      {/* Overview Stats */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            Overview Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="p-3 bg-muted rounded-lg">
+              <div className="text-2xl font-bold text-primary">{stats.students}</div>
+              <div className="text-sm text-muted-foreground">Total Siswa</div>
+            </div>
+            <div className="p-3 bg-muted rounded-lg">
+              <div className="text-2xl font-bold text-primary">{systemStats.activeStudents}</div>
+              <div className="text-sm text-muted-foreground">Siswa Aktif</div>
+            </div>
+            <div className="p-3 bg-muted rounded-lg">
+              <div className="text-2xl font-bold text-primary">{stats.grades}</div>
+              <div className="text-sm text-muted-foreground">Total Nilai</div>
+            </div>
+            <div className="p-3 bg-muted rounded-lg">
+              <div className="text-2xl font-bold text-primary">{stats.attendance}</div>
+              <div className="text-sm text-muted-foreground">Record Kehadiran</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Export Data */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Download className="h-5 w-5" />
+            Ekspor Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Button onClick={handleExport} className="w-full">
+              <Download className="mr-2 h-4 w-4" />
+              Ekspor Semua Data
+            </Button>
+            <Button onClick={handleCopyToClipboard} variant="outline" className="w-full">
+              <Copy className="mr-2 h-4 w-4" />
+              Salin ke Clipboard
+            </Button>
+          </div>
+          
+          <div className="pt-4 border-t">
+            <h4 className="text-sm font-semibold mb-3">Ekspor Per Kategori</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Button onClick={handleExportStudents} variant="outline" size="sm">
+                <FileText className="mr-2 h-4 w-4" />
+                Data Siswa
+              </Button>
+              <Button onClick={handleExportGrades} variant="outline" size="sm">
+                <FileText className="mr-2 h-4 w-4" />
+                Data Nilai
+              </Button>
+              <Button onClick={handleExportAttendance} variant="outline" size="sm">
+                <FileText className="mr-2 h-4 w-4" />
+                Data Kehadiran
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Import Data */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Impor Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Impor dari Text
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Impor Data dari Text</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                      <div className="text-sm text-yellow-800">
+                        <p className="font-medium">Peringatan:</p>
+                        <p>Impor data akan mengganti semua data yang ada. Pastikan Anda sudah melakukan backup.</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="import-data">Data JSON</Label>
+                    <Textarea
+                      id="import-data"
+                      placeholder="Paste data JSON di sini..."
+                      value={importData}
+                      onChange={(e) => setImportData(e.target.value)}
+                      rows={12}
+                      className="mt-1 font-mono text-xs"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsImportOpen(false)}
+                      className="flex-1"
+                    >
+                      Batal
+                    </Button>
+                    <Button 
+                      onClick={handleImport} 
+                      disabled={isLoading || !importData.trim()}
+                      className="flex-1"
+                    >
+                      {isLoading ? "Mengimpor..." : "Impor Data"}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Button 
+              variant="outline" 
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full"
+            >
+              <HardDrive className="mr-2 h-4 w-4" />
+              Impor dari File
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleFileImport}
+              className="hidden"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Preview Data */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Preview Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handlePreviewData} variant="outline" className="w-full">
+            <Eye className="mr-2 h-4 w-4" />
+            Lihat Preview Data
+          </Button>
+          
+          <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+            <DialogContent className="max-w-4xl max-h-[80vh]">
+              <DialogHeader>
+                <DialogTitle>Preview Data</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="p-3 bg-muted rounded-lg">
+                  <pre className="text-xs overflow-auto max-h-96 whitespace-pre-wrap">
+                    {previewData}
+                  </pre>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsPreviewOpen(false)}
+                    className="flex-1"
+                  >
+                    Tutup
+                  </Button>
+                  <Button 
+                    onClick={handleCopyToClipboard}
+                    className="flex-1"
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Salin ke Clipboard
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+
+      {/* Clear Data */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-destructive">
+            <Trash2 className="h-5 w-5" />
+            Hapus Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Hapus Data Siswa
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Hapus Data Siswa</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tindakan ini akan menghapus semua data siswa. Data yang dihapus tidak dapat dipulihkan.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearStudents} className="bg-destructive">
+                    Hapus Data Siswa
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Hapus Data Nilai
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Hapus Data Nilai</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tindakan ini akan menghapus semua data nilai. Data yang dihapus tidak dapat dipulihkan.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearGrades} className="bg-destructive">
+                    Hapus Data Nilai
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Hapus Data Kehadiran
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Hapus Data Kehadiran</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tindakan ini akan menghapus semua data kehadiran. Data yang dihapus tidak dapat dipulihkan.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearAttendance} className="bg-destructive">
+                    Hapus Data Kehadiran
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+
+          <div className="pt-4 border-t">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full">
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Hapus Semua Data
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Hapus Semua Data</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    PERINGATAN: Tindakan ini akan menghapus SEMUA data (siswa, nilai, dan kehadiran). 
+                    Data yang dihapus TIDAK DAPAT DIPULIHKAN. Pastikan Anda sudah melakukan backup.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearAll} className="bg-destructive">
+                    Hapus Semua Data
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Tindakan ini tidak dapat dibatalkan
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

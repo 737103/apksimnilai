@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { login } from "@/lib/auth";
+import { toast } from "sonner";
 
 const BG_URL =
   "https://cdn.builder.io/api/v1/image/assets%2Fd1e126ea874f47f691fbdae8fa279b40%2Fc0fe76ed1cc94947a3697d9b31f4d03b?format=webp&width=1200";
@@ -20,13 +22,20 @@ export default function Index() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === "dalle" && password === "asrahabu") {
-      localStorage.setItem("sips_auth", "true");
-      localStorage.setItem("sips_user", JSON.stringify({ username }));
-      navigate("/dashboard");
+    setError(null);
+    
+    if (!username.trim() || !password.trim()) {
+      setError("Username dan password harus diisi");
       return;
     }
-    setError("Username atau password tidak sesuai");
+    
+    if (login(username, password)) {
+      toast.success("Login berhasil!");
+      navigate("/dashboard");
+    } else {
+      setError("Username atau password tidak sesuai");
+      toast.error("Login gagal. Periksa kembali kredensial Anda.");
+    }
   };
 
   return (
@@ -77,9 +86,6 @@ export default function Index() {
               <Button type="submit" className="w-full h-11 font-semibold">
                 Masuk
               </Button>
-              <p className="text-xs text-muted-foreground text-center">
-                Gunakan Username: <span className="font-semibold">dalle</span> dan Password: <span className="font-semibold">asrahabu</span>
-              </p>
             </form>
           </CardContent>
         </Card>

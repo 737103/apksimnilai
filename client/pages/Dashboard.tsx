@@ -24,6 +24,7 @@ import {
   Users2,
   Pencil,
   Trash2,
+  Database,
 } from "lucide-react";
 import { logout } from "@/lib/auth";
 import {
@@ -63,6 +64,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
+import { DataManager } from "@/components/DataManager";
+import { getStatistics } from "@/lib/data";
 
 const menu = [
   { to: "/dashboard", label: "Statistik", icon: BarChart3, end: true },
@@ -77,6 +80,11 @@ const menu = [
     to: "/dashboard/laporan",
     label: "Kelola Laporan Siswa",
     icon: FileSpreadsheet,
+  },
+  {
+    to: "/dashboard/data",
+    label: "Manajemen Data",
+    icon: Database,
   },
 ];
 
@@ -144,6 +152,7 @@ export default function Dashboard() {
               path="laporan"
               element={<Placeholder title="Kelola Laporan Siswa" />}
             />
+            <Route path="data" element={<DataManager />} />
           </Routes>
         </main>
       </SidebarInset>
@@ -152,6 +161,8 @@ export default function Dashboard() {
 }
 
 function StatistikSection() {
+  const stats = getStatistics();
+  
   const data = [
     { bulan: "Jan", nilai: 78 },
     { bulan: "Feb", nilai: 82 },
@@ -185,9 +196,12 @@ function StatistikSection() {
         </CardContent>
       </Card>
       <div className="grid gap-4">
-        <Stat number="982" label="Jumlah Siswa" />
-        <Stat number="96%" label="Rata-rata Kehadiran" />
-        <Stat number="87" label="Rapor Diproses" />
+        <Stat number={stats.totalStudents.toString()} label="Total Siswa" />
+        <Stat number={stats.activeStudents.toString()} label="Siswa Aktif" />
+        <Stat number={stats.averageGrade.toString()} label="Rata-rata Nilai" />
+        <Stat number={`${stats.averageAttendance}%`} label="Rata-rata Kehadiran" />
+        <Stat number={stats.totalGrades.toString()} label="Total Nilai" />
+        <Stat number={stats.totalAttendanceRecords.toString()} label="Record Kehadiran" />
       </div>
     </div>
   );
