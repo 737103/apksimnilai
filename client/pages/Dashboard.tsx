@@ -66,6 +66,7 @@ import {
 import { toast } from "sonner";
 import { DataManager } from "@/components/DataManager";
 import { getStatistics } from "@/lib/data";
+import ReportPage from "./ReportPage";
 
 const menu = [
   { to: "/dashboard", label: "Statistik", icon: BarChart3, end: true },
@@ -148,10 +149,7 @@ export default function Dashboard() {
             <Route path="siswa" element={<DataSiswaForm />} />
             <Route path="nilai" element={<InputNilaiPage />} />
             <Route path="kehadiran" element={<AttendancePage />} />
-            <Route
-              path="laporan"
-              element={<Placeholder title="Kelola Laporan Siswa" />}
-            />
+            <Route path="laporan" element={<ReportPage />} />
             <Route path="data" element={<DataManager />} />
           </Routes>
         </main>
