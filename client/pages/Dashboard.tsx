@@ -53,6 +53,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -1001,7 +1002,7 @@ function AttendancePage() {
         <CardHeader><CardTitle>Input Kehadiran Siswa</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <FormLabel>Mata Pelajaran</FormLabel>
+            <Label>Mata Pelajaran</Label>
             <Select value={mapel} onValueChange={setMapel}>
               <SelectTrigger className="mt-1 max-w-sm"><SelectValue placeholder="Pilih Mata Pelajaran" /></SelectTrigger>
               <SelectContent>
