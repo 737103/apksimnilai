@@ -934,6 +934,14 @@ const gradeSchema = z
 function InputNilaiPage() {
   const [query, setQuery] = React.useState("");
   const [selected, setSelected] = React.useState<any | null>(null);
+  const [grades, setGrades] = React.useState<any[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("sips_grades") || "[]");
+    } catch {
+      return [];
+    }
+  });
+  const [editingId, setEditingId] = React.useState<string | null>(null);
   const students: any[] = React.useMemo(
     () => JSON.parse(localStorage.getItem("sips_students") || "[]"),
     [],
@@ -971,6 +979,32 @@ function InputNilaiPage() {
     name: "kompetensi",
   });
 
+  function editGrade(g: any) {
+    setEditingId(g.id);
+    setSelected({ id: g.studentId, namaLengkap: g.namaLengkap, nik: g.nik, nisn: g.nisn, nis: g.nis });
+    form.reset({
+      studentId: g.studentId,
+      namaLengkap: g.namaLengkap,
+      nik: g.nik,
+      nisn: g.nisn,
+      nis: g.nis,
+      mataPelajaran: g.mataPelajaran,
+      mataPelajaranLain: g.mataPelajaranLain || "",
+      kompetensi: Array.isArray(g.kompetensi) ? g.kompetensi : [String(g.kompetensi || "")],
+      nilai: g.nilai,
+      keterangan: g.keterangan || "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function deleteGrade(id: string) {
+    if (!confirm("Hapus nilai ini?")) return;
+    const next = grades.filter((x) => x.id !== id);
+    localStorage.setItem("sips_grades", JSON.stringify(next));
+    setGrades(next);
+    toast.success("Nilai dihapus");
+  }
+
   const pickStudent = (s: any) => {
     setSelected(s);
     form.reset({
@@ -988,10 +1022,20 @@ function InputNilaiPage() {
   };
 
   const submitGrade = (v: z.infer<typeof gradeSchema>) => {
-    const grades = JSON.parse(localStorage.getItem("sips_grades") || "[]");
-    const payload = { id: crypto.randomUUID?.() || String(Date.now()), ...v, tanggal: new Date().toISOString() };
-    localStorage.setItem("sips_grades", JSON.stringify([payload, ...grades]));
-    toast.success("Nilai tersimpan");
+    const curr: any[] = JSON.parse(localStorage.getItem("sips_grades") || "[]");
+    if (editingId) {
+      const next = curr.map((g) => (g.id === editingId ? { ...g, ...v } : g));
+      localStorage.setItem("sips_grades", JSON.stringify(next));
+      setGrades(next);
+      setEditingId(null);
+      toast.success("Nilai diperbarui");
+    } else {
+      const payload = { id: crypto.randomUUID?.() || String(Date.now()), ...v, tanggal: new Date().toISOString() };
+      const next = [payload, ...curr];
+      localStorage.setItem("sips_grades", JSON.stringify(next));
+      setGrades(next);
+      toast.success("Nilai tersimpan");
+    }
   };
 
   return (
@@ -1135,12 +1179,101 @@ function InputNilaiPage() {
                 )}
               />
 
-              <div className="flex justify-end">
-                <Button type="submit">Simpan Nilai</Button>
+              <div className="flex justify-end gap-2">
+                {editingId && (
+                  <Button type="button" variant="secondary" onClick={() => { setEditingId(null); }}>
+                    Batal
+                  </Button>
+                )}
+                <Button type="submit">{editingId ? "Perbarui Nilai" : "Simpan Nilai"}</Button>
               </div>
             </form>
           </Form>
         )}
+
+        <div className="pt-6 mt-4 border-t">
+          <h4 className="text-sm font-semibold mb-3">Data Nilai Tersimpan</h4>
+          <div className="overflow-x-auto -mx-2 md:mx-0">
+            <div className="min-w-max md:min-w-0">
+              <Table className="hidden md:table">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Nama</TableHead>
+                    <TableHead>NIK</TableHead>
+                    <TableHead>NISN</TableHead>
+                    <TableHead>NIS</TableHead>
+                    <TableHead>Mapel</TableHead>
+                    <TableHead>Nilai</TableHead>
+                    <TableHead className="w-28">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {grades.map((g) => {
+                    const mp = g.mataPelajaran === "Lainnya" ? g.mataPelajaranLain : g.mataPelajaran;
+                    return (
+                      <TableRow key={g.id}>
+                        <TableCell>{new Date(g.tanggal || Date.now()).toLocaleDateString()}</TableCell>
+                        <TableCell className="font-medium">{g.namaLengkap}</TableCell>
+                        <TableCell>{g.nik}</TableCell>
+                        <TableCell>{g.nisn}</TableCell>
+                        <TableCell>{g.nis}</TableCell>
+                        <TableCell>{mp}</TableCell>
+                        <TableCell>{Number(g.nilai).toFixed(2)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => editGrade(g)}>
+                              <Pencil className="mr-1 h-4 w-4" /> Edit
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => deleteGrade(g.id)}>
+                              <Trash2 className="mr-1 h-4 w-4" /> Hapus
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+
+              <div className="md:hidden grid gap-3">
+                {grades.length === 0 && (
+                  <div className="text-sm text-muted-foreground">Belum ada data nilai.</div>
+                )}
+                {grades.map((g) => {
+                  const mp = g.mataPelajaran === "Lainnya" ? g.mataPelajaranLain : g.mataPelajaran;
+                  return (
+                    <div key={g.id} className="rounded-md border p-3 bg-card">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <div className="font-semibold">{g.namaLengkap}</div>
+                          <div className="text-xs text-muted-foreground">{new Date(g.tanggal || Date.now()).toLocaleDateString()}</div>
+                        </div>
+                        <div className="text-right text-sm">
+                          <div className="font-semibold">{Number(g.nilai).toFixed(2)}</div>
+                          <div className="text-xs text-muted-foreground">{mp}</div>
+                        </div>
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                        <div><span className="text-muted-foreground">NIK:</span> {g.nik}</div>
+                        <div><span className="text-muted-foreground">NISN:</span> {g.nisn}</div>
+                        <div><span className="text-muted-foreground">NIS:</span> {g.nis}</div>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => editGrade(g)} className="flex-1">
+                          <Pencil className="mr-1 h-4 w-4" /> Edit
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => deleteGrade(g.id)} className="flex-1">
+                          <Trash2 className="mr-1 h-4 w-4" /> Hapus
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
