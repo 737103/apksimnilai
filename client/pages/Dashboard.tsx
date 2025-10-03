@@ -15,27 +15,68 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, CalendarCheck2, ClipboardList, FileSpreadsheet, LogOut, Users2, Pencil, Trash2 } from "lucide-react";
+import {
+  BarChart3,
+  CalendarCheck2,
+  ClipboardList,
+  FileSpreadsheet,
+  LogOut,
+  Users2,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { logout } from "@/lib/auth";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { z } from "zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 
 const menu = [
   { to: "/dashboard", label: "Statistik", icon: BarChart3, end: true },
   { to: "/dashboard/siswa", label: "Data Siswa", icon: Users2 },
   { to: "/dashboard/nilai", label: "Input Nilai Siswa", icon: ClipboardList },
-  { to: "/dashboard/kehadiran", label: "Input Kehadiran Siswa", icon: CalendarCheck2 },
-  { to: "/dashboard/laporan", label: "Kelola Laporan Siswa", icon: FileSpreadsheet },
+  {
+    to: "/dashboard/kehadiran",
+    label: "Input Kehadiran Siswa",
+    icon: CalendarCheck2,
+  },
+  {
+    to: "/dashboard/laporan",
+    label: "Kelola Laporan Siswa",
+    icon: FileSpreadsheet,
+  },
 ];
 
 export default function Dashboard() {
@@ -51,7 +92,9 @@ export default function Dashboard() {
         <SidebarHeader className="px-3 py-4">
           <div className="font-extrabold text-lg leading-tight">
             SIPS
-            <div className="text-xs font-normal text-muted-foreground">SMPN 2 Baraka</div>
+            <div className="text-xs font-normal text-muted-foreground">
+              SMPN 2 Baraka
+            </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -59,7 +102,13 @@ export default function Dashboard() {
             {menu.map((m) => (
               <SidebarMenuItem key={m.to}>
                 <SidebarMenuButton asChild isActive={false}>
-                  <NavLink to={m.to} end={m.end as boolean | undefined} className={({ isActive }) => (isActive ? "data-[active=true]" : undefined)}>
+                  <NavLink
+                    to={m.to}
+                    end={m.end as boolean | undefined}
+                    className={({ isActive }) =>
+                      isActive ? "data-[active=true]" : undefined
+                    }
+                  >
                     <m.icon className="shrink-0" />
                     <span>{m.label}</span>
                   </NavLink>
@@ -79,7 +128,9 @@ export default function Dashboard() {
         <header className="sticky top-0 z-10 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
           <div className="flex items-center gap-2 px-4 h-14">
             <SidebarTrigger />
-            <div className="font-semibold">Sistem Informasi Penilaian Siswa — SMPN 2 Baraka Kab. Enrekang</div>
+            <div className="font-semibold">
+              Sistem Informasi Penilaian Siswa — SMPN 2 Baraka Kab. Enrekang
+            </div>
           </div>
         </header>
         <main className="p-4 md:p-6 grid gap-4">
@@ -87,8 +138,14 @@ export default function Dashboard() {
             <Route index element={<StatistikSection />} />
             <Route path="siswa" element={<DataSiswaForm />} />
             <Route path="nilai" element={<InputNilaiPage />} />
-            <Route path="kehadiran" element={<Placeholder title="Input Kehadiran Siswa" />} />
-            <Route path="laporan" element={<Placeholder title="Kelola Laporan Siswa" />} />
+            <Route
+              path="kehadiran"
+              element={<Placeholder title="Input Kehadiran Siswa" />}
+            />
+            <Route
+              path="laporan"
+              element={<Placeholder title="Kelola Laporan Siswa" />}
+            />
           </Routes>
         </main>
       </SidebarInset>
@@ -121,7 +178,10 @@ function StatistikSection() {
               <CartesianGrid vertical={false} />
               <XAxis dataKey="bulan" tickLine={false} axisLine={false} />
               <Bar dataKey="nilai" fill="var(--color-nilai)" radius={6} />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
             </BarChart>
           </ChartContainer>
         </CardContent>
@@ -167,7 +227,12 @@ const pekerjaanOptions = [
   "Lainnya",
 ] as const;
 
-const statusOptions = ["Aktif", "Meninggal", "Pindahan", "Pindah Sekolah"] as const;
+const statusOptions = [
+  "Aktif",
+  "Meninggal",
+  "Pindahan",
+  "Pindah Sekolah",
+] as const;
 
 const ketOptions = [
   "Siswa Berprestasi",
@@ -185,7 +250,10 @@ const schema = z
     tanggalLahir: z
       .string()
       .min(1)
-      .refine((v) => !Number.isNaN(new Date(v).getTime()), "Tanggal tidak valid"),
+      .refine(
+        (v) => !Number.isNaN(new Date(v).getTime()),
+        "Tanggal tidak valid",
+      ),
     nisn: z.string().min(1),
     nis: z.string().min(1),
     jenisKelamin: z.enum(["Laki-laki", "Perempuan"]),
@@ -205,21 +273,32 @@ const schema = z
       .any()
       .optional()
       .refine((file) => !file || file instanceof File, "File tidak valid")
-      .refine((file) => !file || file.size <= 500 * 1024, "Ukuran maksimal 500 KB")
+      .refine(
+        (file) => !file || file.size <= 500 * 1024,
+        "Ukuran maksimal 500 KB",
+      )
       .refine(
         (file) =>
           !file || ["image/jpeg", "image/png", "image/jpg"].includes(file.type),
         "Format harus JPG/JPEG/PNG",
       ),
   })
-  .refine((data) => data.pekerjaanOrtu !== "Lainnya" || !!data.pekerjaanOrtuLain?.trim(), {
-    path: ["pekerjaanOrtuLain"],
-    message: "Harap isi pekerjaan lainnya",
-  })
-  .refine((data) => !data.keterangan?.includes("Lainnya") || !!data.keteranganLain?.trim(), {
-    path: ["keteranganLain"],
-    message: "Harap isi keterangan lainnya",
-  });
+  .refine(
+    (data) =>
+      data.pekerjaanOrtu !== "Lainnya" || !!data.pekerjaanOrtuLain?.trim(),
+    {
+      path: ["pekerjaanOrtuLain"],
+      message: "Harap isi pekerjaan lainnya",
+    },
+  )
+  .refine(
+    (data) =>
+      !data.keterangan?.includes("Lainnya") || !!data.keteranganLain?.trim(),
+    {
+      path: ["keteranganLain"],
+      message: "Harap isi keterangan lainnya",
+    },
+  );
 
 function DataSiswaForm() {
   const [students, setStudents] = useState<any[]>(() => {
@@ -262,7 +341,9 @@ function DataSiswaForm() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const onSubmit = async (values: z.infer<typeof schema>) => {
-    const curr: any[] = JSON.parse(localStorage.getItem("sips_students") || "[]");
+    const curr: any[] = JSON.parse(
+      localStorage.getItem("sips_students") || "[]",
+    );
 
     const file = values.foto as File | undefined;
     let fotoUrl: string | undefined = undefined;
@@ -366,395 +447,459 @@ function DataSiswaForm() {
       <Card>
         <CardHeader>
           <CardTitle>Data Siswa</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:row-span-3 flex items-start gap-3">
-                {preview ? (
-                  <img src={preview} alt="Preview foto siswa" className="h-24 w-24 rounded-md object-cover border" />
-                ) : (
-                  <div className="h-24 w-24 rounded-md border bg-muted/30 flex items-center justify-center text-xs text-muted-foreground">
-                    Foto
-                  </div>
-                )}
-                <div className="flex-1">
-                  <FormField
-                    control={form.control}
-                    name="foto"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Foto Siswa (JPG/PNG, maks 500 KB)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            accept="image/png, image/jpeg"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              form.setValue("foto", file as File | undefined, { shouldValidate: true });
-                              if (file) setPreview(URL.createObjectURL(file));
-                              else setPreview(null);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="namaLengkap"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nama Lengkap Siswa</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nama lengkap" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="asalSekolah"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Asal Sekolah</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Asal sekolah" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="nisn"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>NISN</FormLabel>
-                    <FormControl>
-                      <Input inputMode="numeric" placeholder="NISN" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="nis"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>NIS</FormLabel>
-                    <FormControl>
-                      <Input inputMode="numeric" placeholder="NIS" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="nik"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>NIK</FormLabel>
-                    <FormControl>
-                      <Input inputMode="numeric" placeholder="16 digit" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="tempatLahir"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tempat Lahir</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Kota/Kabupaten" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="tanggalLahir"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tanggal Lahir</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="jenisKelamin"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Jenis Kelamin</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Laki-laki">Laki-laki</SelectItem>
-                        <SelectItem value="Perempuan">Perempuan</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="agama"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Agama</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {agamaOptions.map((a) => (
-                          <SelectItem key={a} value={a}>
-                            {a}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="pekerjaanOrtu"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pekerjaan Orang Tua</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {pekerjaanOptions.map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {p}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {pekerjaanOrtuValue === "Lainnya" && (
-                      <div className="mt-2">
-                        <FormField
-                          control={form.control}
-                          name="pekerjaanOrtuLain"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-xs">Tuliskan Pekerjaan Lainnya</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Pekerjaan lainnya" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="statusSiswa"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status Siswa</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {statusOptions.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {s}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="jumlahSaudara"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Jumlah Saudara</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="namaAyah"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nama Orang Tua (Ayah)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nama Ayah" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="namaIbu"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nama Orang Tua (Ibu)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nama Ibu" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="alamatDomisili"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Alamat Domisili</FormLabel>
-                  <FormControl>
-                    <Textarea rows={3} placeholder="Alamat domisili" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="alamatOrtu"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Alamat Orang Tua</FormLabel>
-                  <FormControl>
-                    <Textarea rows={3} placeholder="Alamat orang tua" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div>
-              <FormLabel>Keterangan Lainnya</FormLabel>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 mt-2">
-                {ketOptions.map((k) => (
-                  <FormField
-                    key={k}
-                    control={form.control}
-                    name="keterangan"
-                    render={({ field }) => {
-                      const checked = field.value?.includes(k);
-                      return (
-                        <FormItem className="flex items-center space-x-2">
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:row-span-3 flex items-start gap-3">
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt="Preview foto siswa"
+                      className="h-24 w-24 rounded-md object-cover border"
+                    />
+                  ) : (
+                    <div className="h-24 w-24 rounded-md border bg-muted/30 flex items-center justify-center text-xs text-muted-foreground">
+                      Foto
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <FormField
+                      control={form.control}
+                      name="foto"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Foto Siswa (JPG/PNG, maks 500 KB)
+                          </FormLabel>
                           <FormControl>
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={(v) => {
-                                const arr = new Set(field.value || []);
-                                if (v) arr.add(k);
-                                else arr.delete(k);
-                                field.onChange(Array.from(arr));
+                            <Input
+                              type="file"
+                              accept="image/png, image/jpeg"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                form.setValue(
+                                  "foto",
+                                  file as File | undefined,
+                                  { shouldValidate: true },
+                                );
+                                if (file) setPreview(URL.createObjectURL(file));
+                                else setPreview(null);
                               }}
                             />
                           </FormControl>
-                          <FormLabel className="font-normal">{k}</FormLabel>
+                          <FormMessage />
                         </FormItem>
-                      );
-                    }}
-                  />
-                ))}
-              </div>
-              {keteranganValue?.includes("Lainnya") && (
-                <div className="mt-3">
-                  <FormField
-                    control={form.control}
-                    name="keteranganLain"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs">Tuliskan Keterangan Lainnya</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Keterangan lainnya" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      )}
+                    />
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <div className="flex justify-end gap-3 pt-2">
-              {editingId && (
-                <Button type="button" variant="secondary" onClick={() => { setEditingId(null); setPreview(null); form.reset({
-                  namaLengkap: "",
-                  nik: "",
-                  tempatLahir: "",
-                  tanggalLahir: "",
-                  nisn: "",
-                  nis: "",
-                  jenisKelamin: "Laki-laki",
-                  agama: "Islam",
-                  alamatDomisili: "",
-                  namaAyah: "",
-                  namaIbu: "",
-                  pekerjaanOrtu: "Petani",
-                  pekerjaanOrtuLain: "",
-                  jumlahSaudara: 0,
-                  alamatOrtu: "",
-                  asalSekolah: "",
-                  statusSiswa: "Aktif",
-                  keterangan: [],
-                  keteranganLain: "",
-                  foto: undefined,
-                }); }}>Batal</Button>
-              )}
-              <Button type="submit">{editingId ? "Perbarui" : "Simpan"}</Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+                <FormField
+                  control={form.control}
+                  name="namaLengkap"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Lengkap Siswa</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nama lengkap" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="asalSekolah"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Asal Sekolah</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Asal sekolah" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="nisn"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>NISN</FormLabel>
+                      <FormControl>
+                        <Input
+                          inputMode="numeric"
+                          placeholder="NISN"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="nis"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>NIS</FormLabel>
+                      <FormControl>
+                        <Input
+                          inputMode="numeric"
+                          placeholder="NIS"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="nik"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>NIK</FormLabel>
+                      <FormControl>
+                        <Input
+                          inputMode="numeric"
+                          placeholder="16 digit"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="tempatLahir"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tempat Lahir</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Kota/Kabupaten" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="tanggalLahir"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tanggal Lahir</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="jenisKelamin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jenis Kelamin</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Laki-laki">Laki-laki</SelectItem>
+                          <SelectItem value="Perempuan">Perempuan</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="agama"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Agama</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {agamaOptions.map((a) => (
+                            <SelectItem key={a} value={a}>
+                              {a}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="pekerjaanOrtu"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pekerjaan Orang Tua</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {pekerjaanOptions.map((p) => (
+                            <SelectItem key={p} value={p}>
+                              {p}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {pekerjaanOrtuValue === "Lainnya" && (
+                        <div className="mt-2">
+                          <FormField
+                            control={form.control}
+                            name="pekerjaanOrtuLain"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Tuliskan Pekerjaan Lainnya
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Pekerjaan lainnya"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="statusSiswa"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status Siswa</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {statusOptions.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="jumlahSaudara"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jumlah Saudara</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={0} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="namaAyah"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Orang Tua (Ayah)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nama Ayah" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="namaIbu"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Orang Tua (Ibu)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nama Ibu" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="alamatDomisili"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alamat Domisili</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={3}
+                        placeholder="Alamat domisili"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="alamatOrtu"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alamat Orang Tua</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={3}
+                        placeholder="Alamat orang tua"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div>
+                <FormLabel>Keterangan Lainnya</FormLabel>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+                  {ketOptions.map((k) => (
+                    <FormField
+                      key={k}
+                      control={form.control}
+                      name="keterangan"
+                      render={({ field }) => {
+                        const checked = field.value?.includes(k);
+                        return (
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={(v) => {
+                                  const arr = new Set(field.value || []);
+                                  if (v) arr.add(k);
+                                  else arr.delete(k);
+                                  field.onChange(Array.from(arr));
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal">{k}</FormLabel>
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  ))}
+                </div>
+                {keteranganValue?.includes("Lainnya") && (
+                  <div className="mt-3">
+                    <FormField
+                      control={form.control}
+                      name="keteranganLain"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">
+                            Tuliskan Keterangan Lainnya
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Keterangan lainnya"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                {editingId && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingId(null);
+                      setPreview(null);
+                      form.reset({
+                        namaLengkap: "",
+                        nik: "",
+                        tempatLahir: "",
+                        tanggalLahir: "",
+                        nisn: "",
+                        nis: "",
+                        jenisKelamin: "Laki-laki",
+                        agama: "Islam",
+                        alamatDomisili: "",
+                        namaAyah: "",
+                        namaIbu: "",
+                        pekerjaanOrtu: "Petani",
+                        pekerjaanOrtuLain: "",
+                        jumlahSaudara: 0,
+                        alamatOrtu: "",
+                        asalSekolah: "",
+                        statusSiswa: "Aktif",
+                        keterangan: [],
+                        keteranganLain: "",
+                        foto: undefined,
+                      });
+                    }}
+                  >
+                    Batal
+                  </Button>
+                )}
+                <Button type="submit">
+                  {editingId ? "Perbarui" : "Simpan"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -782,7 +927,11 @@ function DataSiswaForm() {
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-3">
                           {s.fotoUrl ? (
-                            <img src={s.fotoUrl} alt={s.namaLengkap} className="h-8 w-8 rounded object-cover border" />
+                            <img
+                              src={s.fotoUrl}
+                              alt={s.namaLengkap}
+                              className="h-8 w-8 rounded object-cover border"
+                            />
                           ) : (
                             <div className="h-8 w-8 rounded bg-muted border" />
                           )}
@@ -797,10 +946,18 @@ function DataSiswaForm() {
                       <TableCell>{s.statusSiswa}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => handleEdit(s)}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(s)}
+                          >
                             <Pencil className="mr-1 h-4 w-4" /> Edit
                           </Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleDelete(s.id)}>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDelete(s.id)}
+                          >
                             <Trash2 className="mr-1 h-4 w-4" /> Hapus
                           </Button>
                         </div>
@@ -812,33 +969,66 @@ function DataSiswaForm() {
 
               <div className="md:hidden grid gap-3">
                 {students.length === 0 && (
-                  <div className="text-sm text-muted-foreground">Belum ada data siswa.</div>
+                  <div className="text-sm text-muted-foreground">
+                    Belum ada data siswa.
+                  </div>
                 )}
                 {students.map((s) => (
                   <div key={s.id} className="rounded-md border p-3 bg-card">
                     <div className="flex items-center gap-3">
                       {s.fotoUrl ? (
-                        <img src={s.fotoUrl} alt={s.namaLengkap} className="h-10 w-10 rounded object-cover border" />
+                        <img
+                          src={s.fotoUrl}
+                          alt={s.namaLengkap}
+                          className="h-10 w-10 rounded object-cover border"
+                        />
                       ) : (
                         <div className="h-10 w-10 rounded bg-muted border" />
                       )}
                       <div>
                         <div className="font-semibold">{s.namaLengkap}</div>
-                        <div className="text-xs text-muted-foreground">NIK {s.nik}</div>
+                        <div className="text-xs text-muted-foreground">
+                          NIK {s.nik}
+                        </div>
                       </div>
                     </div>
                     <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-muted-foreground">NISN:</span> {s.nisn}</div>
-                      <div><span className="text-muted-foreground">NIS:</span> {s.nis}</div>
-                      <div><span className="text-muted-foreground">JK:</span> {s.jenisKelamin}</div>
-                      <div><span className="text-muted-foreground">Agama:</span> {s.agama}</div>
-                      <div className="col-span-2"><span className="text-muted-foreground">Status:</span> {s.statusSiswa}</div>
+                      <div>
+                        <span className="text-muted-foreground">NISN:</span>{" "}
+                        {s.nisn}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">NIS:</span>{" "}
+                        {s.nis}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">JK:</span>{" "}
+                        {s.jenisKelamin}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Agama:</span>{" "}
+                        {s.agama}
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-muted-foreground">Status:</span>{" "}
+                        {s.statusSiswa}
+                      </div>
                     </div>
                     <div className="mt-3 flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleEdit(s)} className="flex-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(s)}
+                        className="flex-1"
+                      >
                         <Pencil className="mr-1 h-4 w-4" /> Edit
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(s.id)} className="flex-1">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(s.id)}
+                        className="flex-1"
+                      >
                         <Trash2 className="mr-1 h-4 w-4" /> Hapus
                       </Button>
                     </div>
@@ -897,7 +1087,8 @@ function Placeholder({ title }: { title: string }) {
       </CardHeader>
       <CardContent>
         <p className="text-muted-foreground">
-          Halaman ini siap diisi sesuai kebutuhan. Lanjutkan instruksi untuk melengkapi form dan integrasi Supabase.
+          Halaman ini siap diisi sesuai kebutuhan. Lanjutkan instruksi untuk
+          melengkapi form dan integrasi Supabase.
         </p>
       </CardContent>
     </Card>
@@ -922,14 +1113,19 @@ const gradeSchema = z
     nis: z.string(),
     mataPelajaran: z.enum(mpOptions),
     mataPelajaranLain: z.string().optional(),
-    kompetensi: z.array(z.string().min(1)).min(1, "Tambahkan minimal 1 kompetensi"),
+    kompetensi: z
+      .array(z.string().min(1))
+      .min(1, "Tambahkan minimal 1 kompetensi"),
     nilai: z.coerce.number().min(0).max(100),
     keterangan: z.string().optional(),
   })
-  .refine((d) => d.mataPelajaran !== "Lainnya" || !!d.mataPelajaranLain?.trim(), {
-    path: ["mataPelajaranLain"],
-    message: "Harap isi mata pelajaran lainnya",
-  });
+  .refine(
+    (d) => d.mataPelajaran !== "Lainnya" || !!d.mataPelajaranLain?.trim(),
+    {
+      path: ["mataPelajaranLain"],
+      message: "Harap isi mata pelajaran lainnya",
+    },
+  );
 
 function InputNilaiPage() {
   const [query, setQuery] = React.useState("");
@@ -952,7 +1148,9 @@ function InputNilaiPage() {
     const q = query.toLowerCase();
     return students.filter((s) =>
       [s.namaLengkap, s.nik, s.nisn, s.nis].some((v: string) =>
-        String(v || "").toLowerCase().includes(q),
+        String(v || "")
+          .toLowerCase()
+          .includes(q),
       ),
     );
   }, [query, students]);
@@ -981,7 +1179,13 @@ function InputNilaiPage() {
 
   function editGrade(g: any) {
     setEditingId(g.id);
-    setSelected({ id: g.studentId, namaLengkap: g.namaLengkap, nik: g.nik, nisn: g.nisn, nis: g.nis });
+    setSelected({
+      id: g.studentId,
+      namaLengkap: g.namaLengkap,
+      nik: g.nik,
+      nisn: g.nisn,
+      nis: g.nis,
+    });
     form.reset({
       studentId: g.studentId,
       namaLengkap: g.namaLengkap,
@@ -990,7 +1194,9 @@ function InputNilaiPage() {
       nis: g.nis,
       mataPelajaran: g.mataPelajaran,
       mataPelajaranLain: g.mataPelajaranLain || "",
-      kompetensi: Array.isArray(g.kompetensi) ? g.kompetensi : [String(g.kompetensi || "")],
+      kompetensi: Array.isArray(g.kompetensi)
+        ? g.kompetensi
+        : [String(g.kompetensi || "")],
       nilai: g.nilai,
       keterangan: g.keterangan || "",
     });
@@ -1030,7 +1236,11 @@ function InputNilaiPage() {
       setEditingId(null);
       toast.success("Nilai diperbarui");
     } else {
-      const payload = { id: crypto.randomUUID?.() || String(Date.now()), ...v, tanggal: new Date().toISOString() };
+      const payload = {
+        id: crypto.randomUUID?.() || String(Date.now()),
+        ...v,
+        tanggal: new Date().toISOString(),
+      };
       const next = [payload, ...curr];
       localStorage.setItem("sips_grades", JSON.stringify(next));
       setGrades(next);
@@ -1045,12 +1255,20 @@ function InputNilaiPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Cari Siswa (Nama, NIK, NISN, NIS)</label>
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ketik untuk mencari..." />
+          <label className="block text-sm font-medium mb-1">
+            Cari Siswa (Nama, NIK, NISN, NIS)
+          </label>
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ketik untuk mencari..."
+          />
           {query && (
             <div className="mt-2 max-h-56 overflow-auto rounded-md border divide-y">
               {filtered.length === 0 && (
-                <div className="p-3 text-sm text-muted-foreground">Tidak ada hasil</div>
+                <div className="p-3 text-sm text-muted-foreground">
+                  Tidak ada hasil
+                </div>
               )}
               {filtered.map((s) => (
                 <button
@@ -1060,7 +1278,9 @@ function InputNilaiPage() {
                   onClick={() => pickStudent(s)}
                 >
                   <div className="font-medium">{s.namaLengkap}</div>
-                  <div className="text-xs text-muted-foreground">NIK {s.nik} • NISN {s.nisn} • NIS {s.nis}</div>
+                  <div className="text-xs text-muted-foreground">
+                    NIK {s.nik} • NISN {s.nisn} • NIS {s.nis}
+                  </div>
                 </button>
               ))}
             </div>
@@ -1069,7 +1289,10 @@ function InputNilaiPage() {
 
         {selected && (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(submitGrade)} className="grid gap-4">
+            <form
+              onSubmit={form.handleSubmit(submitGrade)}
+              className="grid gap-4"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormItem>
                   <FormLabel>Nama Siswa</FormLabel>
@@ -1101,7 +1324,10 @@ function InputNilaiPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Mata Pelajaran</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih" />
@@ -1122,9 +1348,14 @@ function InputNilaiPage() {
                             name="mataPelajaranLain"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">Tuliskan mata pelajaran lainnya</FormLabel>
+                                <FormLabel className="text-xs">
+                                  Tuliskan mata pelajaran lainnya
+                                </FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Mata pelajaran lainnya" {...field} />
+                                  <Input
+                                    placeholder="Mata pelajaran lainnya"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1142,13 +1373,27 @@ function InputNilaiPage() {
                 <FormLabel>Kompetensi Diharapkan</FormLabel>
                 {fields.map((f: any, idx: number) => (
                   <div key={f.id} className="flex gap-2">
-                    <Input {...form.register(`kompetensi.${idx}` as const)} placeholder={`Kompetensi ke-${idx + 1}`} />
-                    <Button type="button" variant="secondary" onClick={() => remove(idx)} disabled={fields.length === 1}>
+                    <Input
+                      {...form.register(`kompetensi.${idx}` as const)}
+                      placeholder={`Kompetensi ke-${idx + 1}`}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => remove(idx)}
+                      disabled={fields.length === 1}
+                    >
                       Hapus
                     </Button>
                   </div>
                 ))}
-                <Button type="button" variant="outline" onClick={() => append("")}>Tambah Kompetensi</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => append("")}
+                >
+                  Tambah Kompetensi
+                </Button>
               </div>
 
               <FormField
@@ -1158,7 +1403,13 @@ function InputNilaiPage() {
                   <FormItem>
                     <FormLabel>Nilai</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" min={0} max={100} {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        max={100}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -1172,7 +1423,11 @@ function InputNilaiPage() {
                   <FormItem>
                     <FormLabel>Keterangan Kompetensi</FormLabel>
                     <FormControl>
-                      <Textarea rows={3} placeholder="Catatan/pengamatan" {...field} />
+                      <Textarea
+                        rows={3}
+                        placeholder="Catatan/pengamatan"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -1181,11 +1436,19 @@ function InputNilaiPage() {
 
               <div className="flex justify-end gap-2">
                 {editingId && (
-                  <Button type="button" variant="secondary" onClick={() => { setEditingId(null); }}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingId(null);
+                    }}
+                  >
                     Batal
                   </Button>
                 )}
-                <Button type="submit">{editingId ? "Perbarui Nilai" : "Simpan Nilai"}</Button>
+                <Button type="submit">
+                  {editingId ? "Perbarui Nilai" : "Simpan Nilai"}
+                </Button>
               </div>
             </form>
           </Form>
@@ -1210,11 +1473,20 @@ function InputNilaiPage() {
                 </TableHeader>
                 <TableBody>
                   {grades.map((g) => {
-                    const mp = g.mataPelajaran === "Lainnya" ? g.mataPelajaranLain : g.mataPelajaran;
+                    const mp =
+                      g.mataPelajaran === "Lainnya"
+                        ? g.mataPelajaranLain
+                        : g.mataPelajaran;
                     return (
                       <TableRow key={g.id}>
-                        <TableCell>{new Date(g.tanggal || Date.now()).toLocaleDateString()}</TableCell>
-                        <TableCell className="font-medium">{g.namaLengkap}</TableCell>
+                        <TableCell>
+                          {new Date(
+                            g.tanggal || Date.now(),
+                          ).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {g.namaLengkap}
+                        </TableCell>
                         <TableCell>{g.nik}</TableCell>
                         <TableCell>{g.nisn}</TableCell>
                         <TableCell>{g.nis}</TableCell>
@@ -1222,10 +1494,18 @@ function InputNilaiPage() {
                         <TableCell>{Number(g.nilai).toFixed(2)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => editGrade(g)}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => editGrade(g)}
+                            >
                               <Pencil className="mr-1 h-4 w-4" /> Edit
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => deleteGrade(g.id)}>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deleteGrade(g.id)}
+                            >
                               <Trash2 className="mr-1 h-4 w-4" /> Hapus
                             </Button>
                           </div>
@@ -1238,32 +1518,64 @@ function InputNilaiPage() {
 
               <div className="md:hidden grid gap-3">
                 {grades.length === 0 && (
-                  <div className="text-sm text-muted-foreground">Belum ada data nilai.</div>
+                  <div className="text-sm text-muted-foreground">
+                    Belum ada data nilai.
+                  </div>
                 )}
                 {grades.map((g) => {
-                  const mp = g.mataPelajaran === "Lainnya" ? g.mataPelajaranLain : g.mataPelajaran;
+                  const mp =
+                    g.mataPelajaran === "Lainnya"
+                      ? g.mataPelajaranLain
+                      : g.mataPelajaran;
                   return (
                     <div key={g.id} className="rounded-md border p-3 bg-card">
                       <div className="flex items-center justify-between gap-2">
                         <div>
                           <div className="font-semibold">{g.namaLengkap}</div>
-                          <div className="text-xs text-muted-foreground">{new Date(g.tanggal || Date.now()).toLocaleDateString()}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(
+                              g.tanggal || Date.now(),
+                            ).toLocaleDateString()}
+                          </div>
                         </div>
                         <div className="text-right text-sm">
-                          <div className="font-semibold">{Number(g.nilai).toFixed(2)}</div>
-                          <div className="text-xs text-muted-foreground">{mp}</div>
+                          <div className="font-semibold">
+                            {Number(g.nilai).toFixed(2)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {mp}
+                          </div>
                         </div>
                       </div>
                       <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                        <div><span className="text-muted-foreground">NIK:</span> {g.nik}</div>
-                        <div><span className="text-muted-foreground">NISN:</span> {g.nisn}</div>
-                        <div><span className="text-muted-foreground">NIS:</span> {g.nis}</div>
+                        <div>
+                          <span className="text-muted-foreground">NIK:</span>{" "}
+                          {g.nik}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">NISN:</span>{" "}
+                          {g.nisn}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">NIS:</span>{" "}
+                          {g.nis}
+                        </div>
                       </div>
                       <div className="mt-3 flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => editGrade(g)} className="flex-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => editGrade(g)}
+                          className="flex-1"
+                        >
                           <Pencil className="mr-1 h-4 w-4" /> Edit
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => deleteGrade(g.id)} className="flex-1">
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => deleteGrade(g.id)}
+                          className="flex-1"
+                        >
                           <Trash2 className="mr-1 h-4 w-4" /> Hapus
                         </Button>
                       </div>
