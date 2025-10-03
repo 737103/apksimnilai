@@ -138,10 +138,7 @@ export default function Dashboard() {
             <Route index element={<StatistikSection />} />
             <Route path="siswa" element={<DataSiswaForm />} />
             <Route path="nilai" element={<InputNilaiPage />} />
-            <Route
-              path="kehadiran"
-              element={<Placeholder title="Input Kehadiran Siswa" />}
-            />
+            <Route path="kehadiran" element={<AttendancePage />} />
             <Route
               path="laporan"
               element={<Placeholder title="Kelola Laporan Siswa" />}
