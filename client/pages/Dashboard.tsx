@@ -263,6 +263,8 @@ function StatistikSection() {
     }
   }, []);
 
+  // Kartu ringkasan mengikuti filter aktif (didefinisikan setelah filteredAttendance)
+
   // Filter data kehadiran berdasarkan tahun ajaran dan semester
   const filteredAttendance = React.useMemo(() => {
     return attendance.filter((record: any) => {
@@ -359,6 +361,35 @@ function StatistikSection() {
     return result;
   }, [filteredAttendance]);
 
+  // Kartu ringkasan mengikuti filter aktif (setelah filteredAttendance tersedia)
+  const filteredStats = React.useMemo(() => {
+    const totalStudents = JSON.parse(localStorage.getItem("sips_students") || "[]").length;
+
+    const g = filteredGrades;
+    const totalGrades = g.length;
+    const averageGrade = totalGrades
+      ? Math.round((g.reduce((a: number, x: any) => a + Number(x.nilai || 0), 0) / totalGrades) * 100) / 100
+      : 0;
+
+    const a = filteredAttendance;
+    const totalAttendanceRecords = a.length;
+    const averageAttendance = totalAttendanceRecords
+      ? Math.round((a.reduce((s: number, r: any) => s + Number(r.persen || 0), 0) / totalAttendanceRecords) * 100) / 100
+      : 0;
+
+    // Siswa aktif dihitung dari data siswa dengan status Aktif
+    const activeStudents = JSON.parse(localStorage.getItem("sips_students") || "[]").filter((s: any) => s.statusSiswa === "Aktif").length;
+
+    return {
+      totalStudents,
+      activeStudents,
+      totalGrades,
+      averageGrade,
+      totalAttendanceRecords,
+      averageAttendance,
+    };
+  }, [filteredGrades, filteredAttendance]);
+
   return (
     <div className="space-y-6">
       {/* Filter Controls */}
@@ -434,41 +465,43 @@ function StatistikSection() {
         </CardContent>
       </Card>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Stat number={stats.totalStudents.toString()} label="Total Siswa" />
-        <Stat number={stats.activeStudents.toString()} label="Siswa Aktif" />
-        <Stat number={stats.averageGrade.toString()} label="Rata-rata Nilai" />
-        <Stat number={`${stats.averageAttendance}%`} label="Rata-rata Kehadiran" />
+      {/* Stats Overview (berdasarkan filter) */}
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+        <Stat number={filteredStats.totalStudents.toString()} label="Total Siswa" />
+        <Stat number={filteredStats.activeStudents.toString()} label="Siswa Aktif" />
+        <Stat number={filteredStats.totalGrades.toString()} label="Total Nilai" />
+        <Stat number={filteredStats.averageGrade.toString()} label="Rata-rata Nilai" />
+        <Stat number={filteredStats.totalAttendanceRecords.toString()} label="Record Kehadiran" />
+        <Stat number={`${filteredStats.averageAttendance}%`} label="Rata-rata Kehadiran" />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Rata-rata Nilai Per Bulan */}
         <Card>
-          <CardHeader>
-            <CardTitle>Rata-rata Nilai Per Bulan</CardTitle>
+        <CardHeader>
+          <CardTitle>Rata-rata Nilai Per Bulan</CardTitle>
             <p className="text-sm text-muted-foreground">
               {filteredGrades.length} data nilai
             </p>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{ nilai: { label: "Nilai", color: "hsl(var(--primary))" } }}
-              className="h-64"
-            >
+        </CardHeader>
+        <CardContent>
+          <ChartContainer
+            config={{ nilai: { label: "Nilai", color: "hsl(var(--primary))" } }}
+            className="h-64"
+          >
               <BarChart data={chartData}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="bulan" tickLine={false} axisLine={false} />
-                <Bar dataKey="nilai" fill="var(--color-nilai)" radius={6} />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
-                />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="bulan" tickLine={false} axisLine={false} />
+              <Bar dataKey="nilai" fill="var(--color-nilai)" radius={6} />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
 
         {/* Rata-rata Nilai Per Mata Pelajaran */}
         <Card>
@@ -479,21 +512,52 @@ function StatistikSection() {
             </p>
           </CardHeader>
           <CardContent>
-            <ChartContainer
-              config={{ rataRata: { label: "Rata-rata", color: "hsl(var(--secondary))" } }}
-              className="h-64"
-            >
-              <BarChart data={subjectChartData} layout="horizontal">
-                <CartesianGrid horizontal={false} />
-                <XAxis type="number" tickLine={false} axisLine={false} />
-                <YAxis dataKey="mataPelajaran" type="category" tickLine={false} axisLine={false} width={100} />
-                <Bar dataKey="rataRata" fill="var(--color-rataRata)" radius={6} />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
-                />
-              </BarChart>
-            </ChartContainer>
+            {/* Tabel batang dengan warna berbeda per mata pelajaran */}
+            <div className="overflow-x-auto -mx-2 md:mx-0">
+              <div className="min-w-max md:min-w-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Mata Pelajaran</TableHead>
+                      <TableHead>Rata-rata</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {subjectChartData.map((row, idx) => {
+                      // generate warna berbeda stabil berdasarkan index
+                      const hues = [0, 30, 60, 90, 120, 150, 180, 200, 220, 260, 280, 320];
+                      const hue = hues[idx % hues.length];
+                      const barColor = `hsl(${hue} 90% 45%)`;
+                      return (
+                        <TableRow key={row.mataPelajaran}>
+                          <TableCell className="font-medium">{row.mataPelajaran}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 w-[320px]">
+                              <div
+                                className="h-3 rounded"
+                                style={{
+                                  width: `${Math.min(100, Math.max(0, row.rataRata)) * 3}px`,
+                                  backgroundColor: barColor,
+                                }}
+                                title={`${row.rataRata}`}
+                              />
+                              <span className="text-sm tabular-nums w-14">{row.rataRata}</span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {subjectChartData.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-sm text-muted-foreground text-center">
+                          Belum ada data nilai sesuai filter.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -2244,25 +2308,25 @@ function AttendancePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label>Mata Pelajaran</Label>
-              <Select value={mapel} onValueChange={setMapel}>
+          <div>
+            <Label>Mata Pelajaran</Label>
+            <Select value={mapel} onValueChange={setMapel}>
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Pilih Mata Pelajaran" />
-                </SelectTrigger>
-                <SelectContent>
-                  {subjects.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {!subjects.length && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Belum ada mata pelajaran dari input nilai.
-                </p>
-              )}
+                <SelectValue placeholder="Pilih Mata Pelajaran" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!subjects.length && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Belum ada mata pelajaran dari input nilai.
+              </p>
+            )}
             </div>
 
             <div>

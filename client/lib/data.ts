@@ -200,10 +200,34 @@ export function exportAllData(): string {
 export function importAllData(data: string): boolean {
   try {
     const parsed = JSON.parse(data);
-    if (parsed.students) studentManager.import(JSON.stringify(parsed.students));
-    if (parsed.grades) gradeManager.import(JSON.stringify(parsed.grades));
-    if (parsed.attendance) attendanceManager.import(JSON.stringify(parsed.attendance));
-    return true;
+
+    // Full backup format
+    if (parsed && (parsed.students || parsed.grades || parsed.attendance)) {
+      if (parsed.students) studentManager.import(JSON.stringify(parsed.students));
+      if (parsed.grades) gradeManager.import(JSON.stringify(parsed.grades));
+      if (parsed.attendance) attendanceManager.import(JSON.stringify(parsed.attendance));
+      return true;
+    }
+
+    // Array category-only import
+    if (Array.isArray(parsed)) {
+      const arr = parsed as any[];
+      // Heuristic detection
+      const sample = arr[0] || {};
+      if (sample && ("namaLengkap" in sample) && ("nik" in sample) && ("nisn" in sample)) {
+        return studentManager.import(JSON.stringify(arr));
+      }
+      if (sample && ("nilai" in sample) && ("mataPelajaran" in sample || "mataPelajaranLain" in sample)) {
+        return gradeManager.import(JSON.stringify(arr));
+      }
+      if (sample && ("hadir" in sample) && ("alpa" in sample) && ("sakit" in sample) && ("izin" in sample)) {
+        return attendanceManager.import(JSON.stringify(arr));
+      }
+      // Unknown array format
+      return false;
+    }
+
+    return false;
   } catch {
     return false;
   }
