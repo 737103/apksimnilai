@@ -35,6 +35,9 @@ export interface Grade {
   nis: string;
   mataPelajaran: string;
   mataPelajaranLain?: string;
+  kelas: string;
+  tahunAjaran: string;
+  semester: string;
   kompetensi: string[];
   nilai: number;
   keterangan?: string;
@@ -51,6 +54,9 @@ export interface Attendance {
   nisn: string;
   nis: string;
   mapel: string;
+  kelas: string;
+  tahunAjaran: string;
+  semester: string;
   hadir: number;
   alpa: number;
   sakit: number;

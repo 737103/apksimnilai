@@ -32,7 +32,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { z } from "zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -161,30 +161,360 @@ export default function Dashboard() {
 function StatistikSection() {
   const stats = getStatistics();
   
-  const data = [
-    { bulan: "Jan", nilai: 78 },
-    { bulan: "Feb", nilai: 82 },
-    { bulan: "Mar", nilai: 75 },
-    { bulan: "Apr", nilai: 88 },
-    { bulan: "Mei", nilai: 91 },
-    { bulan: "Jun", nilai: 85 },
-  ];
+  // State untuk filter
+  const [selectedTahunAjaran, setSelectedTahunAjaran] = React.useState<string>("all");
+  const [selectedSemester, setSelectedSemester] = React.useState<string>("all");
+  
+  // Ambil data nilai dari localStorage
+  const grades = React.useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("sips_grades") || "[]");
+    } catch {
+      return [];
+    }
+  }, []);
+
+  // Ambil daftar tahun ajaran yang tersedia
+  const availableTahunAjaran = React.useMemo(() => {
+    const tahunSet = new Set<string>();
+    grades.forEach((grade: any) => {
+      if (grade.tahunAjaran) {
+        tahunSet.add(grade.tahunAjaran);
+      }
+    });
+    return Array.from(tahunSet).sort();
+  }, [grades]);
+
+  // Filter data berdasarkan tahun ajaran dan semester
+  const filteredGrades = React.useMemo(() => {
+    return grades.filter((grade: any) => {
+      const tahunMatch = selectedTahunAjaran === "all" || grade.tahunAjaran === selectedTahunAjaran;
+      const semesterMatch = selectedSemester === "all" || grade.semester === selectedSemester;
+      return tahunMatch && semesterMatch;
+    });
+  }, [grades, selectedTahunAjaran, selectedSemester]);
+
+  // Hitung rata-rata nilai per bulan berdasarkan data sebenarnya
+  const chartData = React.useMemo(() => {
+    if (filteredGrades.length === 0) {
+      return [
+        { bulan: "Jan", nilai: 0 },
+        { bulan: "Feb", nilai: 0 },
+        { bulan: "Mar", nilai: 0 },
+        { bulan: "Apr", nilai: 0 },
+        { bulan: "Mei", nilai: 0 },
+        { bulan: "Jun", nilai: 0 },
+        { bulan: "Jul", nilai: 0 },
+        { bulan: "Agu", nilai: 0 },
+        { bulan: "Sep", nilai: 0 },
+        { bulan: "Okt", nilai: 0 },
+        { bulan: "Nov", nilai: 0 },
+        { bulan: "Des", nilai: 0 },
+      ];
+    }
+
+    // Group data per bulan
+    const monthlyData: { [key: string]: number[] } = {};
+    
+    filteredGrades.forEach((grade: any) => {
+      const date = new Date(grade.tanggal || grade.createdAt);
+      const month = date.getMonth(); // 0-11
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const monthName = monthNames[month];
+      
+      if (!monthlyData[monthName]) {
+        monthlyData[monthName] = [];
+      }
+      monthlyData[monthName].push(grade.nilai);
+    });
+
+    // Hitung rata-rata per bulan
+    const result = [
+      { bulan: "Jan", nilai: 0 },
+      { bulan: "Feb", nilai: 0 },
+      { bulan: "Mar", nilai: 0 },
+      { bulan: "Apr", nilai: 0 },
+      { bulan: "Mei", nilai: 0 },
+      { bulan: "Jun", nilai: 0 },
+      { bulan: "Jul", nilai: 0 },
+      { bulan: "Agu", nilai: 0 },
+      { bulan: "Sep", nilai: 0 },
+      { bulan: "Okt", nilai: 0 },
+      { bulan: "Nov", nilai: 0 },
+      { bulan: "Des", nilai: 0 },
+    ];
+
+    result.forEach(item => {
+      if (monthlyData[item.bulan]) {
+        const sum = monthlyData[item.bulan].reduce((a, b) => a + b, 0);
+        item.nilai = Math.round((sum / monthlyData[item.bulan].length) * 100) / 100;
+      }
+    });
+
+    return result;
+  }, [filteredGrades]);
+
+  // Ambil data kehadiran dari localStorage
+  const attendance = React.useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("sips_attendance") || "[]");
+    } catch {
+      return [];
+    }
+  }, []);
+
+  // Filter data kehadiran berdasarkan tahun ajaran dan semester
+  const filteredAttendance = React.useMemo(() => {
+    return attendance.filter((record: any) => {
+      const tahunMatch = selectedTahunAjaran === "all" || record.tahunAjaran === selectedTahunAjaran;
+      const semesterMatch = selectedSemester === "all" || record.semester === selectedSemester;
+      return tahunMatch && semesterMatch;
+    });
+  }, [attendance, selectedTahunAjaran, selectedSemester]);
+
+  // Hitung rata-rata nilai per mata pelajaran
+  const subjectChartData = React.useMemo(() => {
+    if (filteredGrades.length === 0) {
+      return [];
+    }
+
+    const subjectData: { [key: string]: number[] } = {};
+    
+    filteredGrades.forEach((grade: any) => {
+      const subjectName = grade.mataPelajaran === "Lainnya" ? grade.mataPelajaranLain : grade.mataPelajaran;
+      if (subjectName) {
+        if (!subjectData[subjectName]) {
+          subjectData[subjectName] = [];
+        }
+        subjectData[subjectName].push(grade.nilai);
+      }
+    });
+
+    return Object.entries(subjectData).map(([subject, values]) => {
+      const sum = values.reduce((a, b) => a + b, 0);
+      const average = Math.round((sum / values.length) * 100) / 100;
+      return {
+        mataPelajaran: subject,
+        rataRata: average,
+        jumlahData: values.length
+      };
+    }).sort((a, b) => b.rataRata - a.rataRata);
+  }, [filteredGrades]);
+
+  // Hitung rata-rata kehadiran per bulan
+  const attendanceChartData = React.useMemo(() => {
+    if (filteredAttendance.length === 0) {
+      return [
+        { bulan: "Jan", kehadiran: 0 },
+        { bulan: "Feb", kehadiran: 0 },
+        { bulan: "Mar", kehadiran: 0 },
+        { bulan: "Apr", kehadiran: 0 },
+        { bulan: "Mei", kehadiran: 0 },
+        { bulan: "Jun", kehadiran: 0 },
+        { bulan: "Jul", kehadiran: 0 },
+        { bulan: "Agu", kehadiran: 0 },
+        { bulan: "Sep", kehadiran: 0 },
+        { bulan: "Okt", kehadiran: 0 },
+        { bulan: "Nov", kehadiran: 0 },
+        { bulan: "Des", kehadiran: 0 },
+      ];
+    }
+
+    const monthlyAttendance: { [key: string]: number[] } = {};
+    
+    filteredAttendance.forEach((record: any) => {
+      const date = new Date(record.tanggal || record.createdAt);
+      const month = date.getMonth();
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const monthName = monthNames[month];
+      
+      if (!monthlyAttendance[monthName]) {
+        monthlyAttendance[monthName] = [];
+      }
+      monthlyAttendance[monthName].push(record.persen || 0);
+    });
+
+    const result = [
+      { bulan: "Jan", kehadiran: 0 },
+      { bulan: "Feb", kehadiran: 0 },
+      { bulan: "Mar", kehadiran: 0 },
+      { bulan: "Apr", kehadiran: 0 },
+      { bulan: "Mei", kehadiran: 0 },
+      { bulan: "Jun", kehadiran: 0 },
+      { bulan: "Jul", kehadiran: 0 },
+      { bulan: "Agu", kehadiran: 0 },
+      { bulan: "Sep", kehadiran: 0 },
+      { bulan: "Okt", kehadiran: 0 },
+      { bulan: "Nov", kehadiran: 0 },
+      { bulan: "Des", kehadiran: 0 },
+    ];
+
+    result.forEach(item => {
+      if (monthlyAttendance[item.bulan]) {
+        const sum = monthlyAttendance[item.bulan].reduce((a, b) => a + b, 0);
+        item.kehadiran = Math.round((sum / monthlyAttendance[item.bulan].length) * 100) / 100;
+      }
+    });
+
+    return result;
+  }, [filteredAttendance]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <Card className="md:col-span-2">
+    <div className="space-y-6">
+      {/* Filter Controls */}
+      <Card>
         <CardHeader>
-          <CardTitle>Rata-rata Nilai Per Bulan</CardTitle>
+          <CardTitle>Filter Data Statistik</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-sm font-medium text-muted-foreground">Tahun Ajaran</label>
+              <Select value={selectedTahunAjaran} onValueChange={setSelectedTahunAjaran}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Pilih Tahun Ajaran" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Tahun Ajaran</SelectItem>
+                  {availableTahunAjaran.map((tahun) => (
+                    <SelectItem key={tahun} value={tahun}>
+                      {tahun}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex-1 min-w-[150px]">
+              <label className="text-sm font-medium text-muted-foreground">Semester</label>
+              <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Pilih Semester" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Semester</SelectItem>
+                  <SelectItem value="Ganjil">Ganjil</SelectItem>
+                  <SelectItem value="Genap">Genap</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedTahunAjaran("all");
+                  setSelectedSemester("all");
+                }}
+              >
+                Reset Filter
+              </Button>
+            </div>
+          </div>
+          
+          {/* Filter Info */}
+          {(selectedTahunAjaran !== "all" || selectedSemester !== "all") && (
+            <div className="mt-4 p-3 bg-muted rounded-lg">
+              <p className="text-sm font-medium">Filter Aktif:</p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {selectedTahunAjaran !== "all" && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary/10 text-primary text-xs">
+                    Tahun Ajaran: {selectedTahunAjaran}
+                  </span>
+                )}
+                {selectedSemester !== "all" && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary/10 text-primary text-xs">
+                    Semester: {selectedSemester}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Stat number={stats.totalStudents.toString()} label="Total Siswa" />
+        <Stat number={stats.activeStudents.toString()} label="Siswa Aktif" />
+        <Stat number={stats.averageGrade.toString()} label="Rata-rata Nilai" />
+        <Stat number={`${stats.averageAttendance}%`} label="Rata-rata Kehadiran" />
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Rata-rata Nilai Per Bulan */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Rata-rata Nilai Per Bulan</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {filteredGrades.length} data nilai
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{ nilai: { label: "Nilai", color: "hsl(var(--primary))" } }}
+              className="h-64"
+            >
+              <BarChart data={chartData}>
+                <CartesianGrid vertical={false} />
+                <XAxis dataKey="bulan" tickLine={false} axisLine={false} />
+                <Bar dataKey="nilai" fill="var(--color-nilai)" radius={6} />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Rata-rata Nilai Per Mata Pelajaran */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Rata-rata Nilai Per Mata Pelajaran</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {subjectChartData.length} mata pelajaran
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{ rataRata: { label: "Rata-rata", color: "hsl(var(--secondary))" } }}
+              className="h-64"
+            >
+              <BarChart data={subjectChartData} layout="horizontal">
+                <CartesianGrid horizontal={false} />
+                <XAxis type="number" tickLine={false} axisLine={false} />
+                <YAxis dataKey="mataPelajaran" type="category" tickLine={false} axisLine={false} width={100} />
+                <Bar dataKey="rataRata" fill="var(--color-rataRata)" radius={6} />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Rata-rata Kehadiran Per Bulan - Full Width */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Rata-rata Kehadiran Siswa Per Bulan</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {filteredAttendance.length} data kehadiran
+          </p>
         </CardHeader>
         <CardContent>
           <ChartContainer
-            config={{ nilai: { label: "Nilai", color: "hsl(var(--primary))" } }}
+            config={{ kehadiran: { label: "Kehadiran (%)", color: "hsl(var(--accent))" } }}
             className="h-64"
           >
-            <BarChart data={data}>
+            <BarChart data={attendanceChartData}>
               <CartesianGrid vertical={false} />
               <XAxis dataKey="bulan" tickLine={false} axisLine={false} />
-              <Bar dataKey="nilai" fill="var(--color-nilai)" radius={6} />
+              <Bar dataKey="kehadiran" fill="var(--color-kehadiran)" radius={6} />
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent hideLabel />}
@@ -193,14 +523,6 @@ function StatistikSection() {
           </ChartContainer>
         </CardContent>
       </Card>
-      <div className="grid gap-4">
-        <Stat number={stats.totalStudents.toString()} label="Total Siswa" />
-        <Stat number={stats.activeStudents.toString()} label="Siswa Aktif" />
-        <Stat number={stats.averageGrade.toString()} label="Rata-rata Nilai" />
-        <Stat number={`${stats.averageAttendance}%`} label="Rata-rata Kehadiran" />
-        <Stat number={stats.totalGrades.toString()} label="Total Nilai" />
-        <Stat number={stats.totalAttendanceRecords.toString()} label="Record Kehadiran" />
-      </div>
     </div>
   );
 }
@@ -1120,6 +1442,9 @@ const mpOptions = [
   "Lainnya",
 ] as const;
 
+const kelasOptions = ["VII", "VIII", "IX"] as const;
+const semesterOptions = ["Ganjil", "Genap"] as const;
+
 const gradeSchema = z
   .object({
     studentId: z.string(),
@@ -1129,6 +1454,9 @@ const gradeSchema = z
     nis: z.string(),
     mataPelajaran: z.enum(mpOptions),
     mataPelajaranLain: z.string().optional(),
+    kelas: z.enum(kelasOptions),
+    tahunAjaran: z.string().min(1, "Tahun ajaran harus diisi"),
+    semester: z.enum(semesterOptions),
     kompetensi: z
       .array(z.string().min(1))
       .min(1, "Tambahkan minimal 1 kompetensi"),
@@ -1154,6 +1482,15 @@ function InputNilaiPage() {
     }
   });
   const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [tahunAjaranList, setTahunAjaranList] = React.useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("sips_tahun_ajaran") || '["2024/2025", "2023/2024"]');
+    } catch {
+      return ["2024/2025", "2023/2024"];
+    }
+  });
+  const [newTahunAjaran, setNewTahunAjaran] = React.useState("");
+  const [showAddTahunAjaran, setShowAddTahunAjaran] = React.useState(false);
   const students: any[] = React.useMemo(
     () => JSON.parse(localStorage.getItem("sips_students") || "[]"),
     [],
@@ -1181,11 +1518,29 @@ function InputNilaiPage() {
       nis: "",
       mataPelajaran: "Bahasa Indonesia",
       mataPelajaranLain: "",
+      kelas: "VII",
+      tahunAjaran: "2024/2025",
+      semester: "Ganjil",
       kompetensi: [""],
       nilai: 0,
       keterangan: "",
     },
   });
+
+  const addTahunAjaran = () => {
+    if (newTahunAjaran.trim() && !tahunAjaranList.includes(newTahunAjaran.trim())) {
+      const updated = [...tahunAjaranList, newTahunAjaran.trim()].sort();
+      setTahunAjaranList(updated);
+      localStorage.setItem("sips_tahun_ajaran", JSON.stringify(updated));
+      setNewTahunAjaran("");
+      setShowAddTahunAjaran(false);
+      toast.success("Tahun ajaran berhasil ditambahkan");
+    } else if (tahunAjaranList.includes(newTahunAjaran.trim())) {
+      toast.error("Tahun ajaran sudah ada");
+    } else {
+      toast.error("Tahun ajaran tidak boleh kosong");
+    }
+  };
 
   const mpValue = form.watch("mataPelajaran");
   const { fields, append, remove } = useFieldArray({
@@ -1210,6 +1565,9 @@ function InputNilaiPage() {
       nis: g.nis,
       mataPelajaran: g.mataPelajaran,
       mataPelajaranLain: g.mataPelajaranLain || "",
+      kelas: g.kelas || "VII",
+      tahunAjaran: g.tahunAjaran || "2024/2025",
+      semester: g.semester || "Ganjil",
       kompetensi: Array.isArray(g.kompetensi)
         ? g.kompetensi
         : [String(g.kompetensi || "")],
@@ -1237,6 +1595,9 @@ function InputNilaiPage() {
       nis: s.nis,
       mataPelajaran: "Bahasa Indonesia",
       mataPelajaranLain: "",
+      kelas: "VII",
+      tahunAjaran: "2024/2025",
+      semester: "Ganjil",
       kompetensi: [""],
       nilai: 0,
       keterangan: "",
@@ -1383,6 +1744,127 @@ function InputNilaiPage() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="kelas"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Kelas</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih Kelas" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {kelasOptions.map((k) => (
+                            <SelectItem key={k} value={k}>
+                              {k}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="tahunAjaran"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tahun Ajaran</FormLabel>
+                      <div className="flex gap-2">
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih Tahun Ajaran" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {tahunAjaranList.map((t) => (
+                              <SelectItem key={t} value={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAddTahunAjaran(!showAddTahunAjaran)}
+                        >
+                          +
+                        </Button>
+                      </div>
+                      {showAddTahunAjaran && (
+                        <div className="mt-2 flex gap-2">
+                          <Input
+                            placeholder="Tahun Ajaran (contoh: 2025/2026)"
+                            value={newTahunAjaran}
+                            onChange={(e) => setNewTahunAjaran(e.target.value)}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={addTahunAjaran}
+                          >
+                            Tambah
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setShowAddTahunAjaran(false);
+                              setNewTahunAjaran("");
+                            }}
+                          >
+                            Batal
+                          </Button>
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="semester"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Semester</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih Semester" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {semesterOptions.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="space-y-2">
@@ -1482,6 +1964,9 @@ function InputNilaiPage() {
                     <TableHead>NIK</TableHead>
                     <TableHead>NISN</TableHead>
                     <TableHead>NIS</TableHead>
+                    <TableHead>Kelas</TableHead>
+                    <TableHead>Tahun Ajaran</TableHead>
+                    <TableHead>Semester</TableHead>
                     <TableHead>Mapel</TableHead>
                     <TableHead>Nilai</TableHead>
                     <TableHead className="w-28">Aksi</TableHead>
@@ -1506,6 +1991,9 @@ function InputNilaiPage() {
                         <TableCell>{g.nik}</TableCell>
                         <TableCell>{g.nisn}</TableCell>
                         <TableCell>{g.nis}</TableCell>
+                        <TableCell>{g.kelas || "VII"}</TableCell>
+                        <TableCell>{g.tahunAjaran || "2024/2025"}</TableCell>
+                        <TableCell>{g.semester || "Ganjil"}</TableCell>
                         <TableCell>{mp}</TableCell>
                         <TableCell>{Number(g.nilai).toFixed(2)}</TableCell>
                         <TableCell>
@@ -1576,6 +2064,18 @@ function InputNilaiPage() {
                           <span className="text-muted-foreground">NIS:</span>{" "}
                           {g.nis}
                         </div>
+                        <div>
+                          <span className="text-muted-foreground">Kelas:</span>{" "}
+                          {g.kelas || "VII"}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Tahun Ajaran:</span>{" "}
+                          {g.tahunAjaran || "2024/2025"}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Semester:</span>{" "}
+                          {g.semester || "Ganjil"}
+                        </div>
                       </div>
                       <div className="mt-3 flex gap-2">
                         <Button
@@ -1609,6 +2109,10 @@ function InputNilaiPage() {
 
 function AttendancePage() {
   const [mapel, setMapel] = React.useState<string>("");
+  const [kelas, setKelas] = React.useState<string>("VII");
+  const [tahunAjaran, setTahunAjaran] = React.useState<string>("2024/2025");
+  const [semester, setSemester] = React.useState<string>("Ganjil");
+  
   const students: any[] = React.useMemo(
     () => JSON.parse(localStorage.getItem("sips_students") || "[]"),
     [],
@@ -1626,6 +2130,16 @@ function AttendancePage() {
     });
     return Array.from(set);
   }, [grades]);
+  
+  // Ambil daftar tahun ajaran yang tersedia
+  const availableTahunAjaran = React.useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("sips_tahun_ajaran") || '["2024/2025", "2023/2024"]');
+    } catch {
+      return ["2024/2025", "2023/2024"];
+    }
+  }, []);
+  
   const [att, setAtt] = React.useState<any[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("sips_attendance") || "[]");
@@ -1676,12 +2190,17 @@ function AttendancePage() {
       nisn: s.nisn,
       nis: s.nis,
       mapel,
+      kelas,
+      tahunAjaran,
+      semester,
       hadir: rs.hadir,
       alpa: rs.alpa,
       sakit: rs.sakit,
       izin: rs.izin,
       persen: percentOf(rs),
       tanggal: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     const curr: any[] = JSON.parse(
       localStorage.getItem("sips_attendance") || "[]",
@@ -1695,6 +2214,9 @@ function AttendancePage() {
   }
   function editRec(r: any) {
     setMapel(r.mapel);
+    setKelas(r.kelas || "VII");
+    setTahunAjaran(r.tahunAjaran || "2024/2025");
+    setSemester(r.semester || "Ganjil");
     rowsState.current[r.studentId] = {
       hadir: r.hadir,
       alpa: r.alpa,
@@ -1721,25 +2243,75 @@ function AttendancePage() {
           <CardTitle>Input Kehadiran Siswa</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label>Mata Pelajaran</Label>
-            <Select value={mapel} onValueChange={setMapel}>
-              <SelectTrigger className="mt-1 max-w-sm">
-                <SelectValue placeholder="Pilih Mata Pelajaran" />
-              </SelectTrigger>
-              <SelectContent>
-                {subjects.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!subjects.length && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Belum ada mata pelajaran dari input nilai.
-              </p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <Label>Mata Pelajaran</Label>
+              <Select value={mapel} onValueChange={setMapel}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Pilih Mata Pelajaran" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!subjects.length && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Belum ada mata pelajaran dari input nilai.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label>Kelas</Label>
+              <Select value={kelas} onValueChange={setKelas}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Pilih Kelas" />
+                </SelectTrigger>
+                <SelectContent>
+                  {kelasOptions.map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {k}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Tahun Ajaran</Label>
+              <Select value={tahunAjaran} onValueChange={setTahunAjaran}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Pilih Tahun Ajaran" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTahunAjaran.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Semester</Label>
+              <Select value={semester} onValueChange={setSemester}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Pilih Semester" />
+                </SelectTrigger>
+                <SelectContent>
+                  {semesterOptions.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {mapel && (

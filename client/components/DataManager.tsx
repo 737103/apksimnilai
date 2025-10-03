@@ -52,6 +52,7 @@ export function DataManager() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const autoFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExport = () => {
     try {
@@ -129,21 +130,46 @@ export function DataManager() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== "application/json") {
-      toast.error("File harus berformat JSON");
+    // Check file extension instead of MIME type for better compatibility
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.json')) {
+      toast.error("File harus berformat JSON (.json)");
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const content = e.target?.result as string;
-      setImportData(content);
-      toast.success("File berhasil dibaca");
+      try {
+        const content = e.target?.result as string;
+        
+        // Validate JSON format
+        const parsedData = JSON.parse(content);
+        
+        // Check if it's a valid SIPS data format
+        if (parsedData.students || parsedData.grades || parsedData.attendance) {
+          // It's a complete SIPS export format
+          setImportData(content);
+          toast.success("File berhasil dibaca. Klik 'Impor Data' untuk melanjutkan.");
+        } else if (Array.isArray(parsedData)) {
+          // It's an array format (single data type)
+          setImportData(content);
+          toast.success("File berhasil dibaca. Klik 'Impor Data' untuk melanjutkan.");
+        } else {
+          toast.error("Format file tidak valid. Pastikan file adalah export dari SIPS.");
+          return;
+        }
+      } catch (error) {
+        toast.error("File bukan format JSON yang valid");
+        return;
+      }
     };
     reader.onerror = () => {
       toast.error("Gagal membaca file");
     };
-    reader.readAsText(file);
+    reader.readAsText(file, 'UTF-8');
+    
+    // Reset file input
+    event.target.value = '';
   };
 
   const handlePreviewData = () => {
@@ -218,6 +244,50 @@ export function DataManager() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFileImportAndProcess = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file extension
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.json')) {
+      toast.error("File harus berformat JSON (.json)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const parsedData = JSON.parse(content);
+        
+        // Validate data format
+        if (parsedData.students || parsedData.grades || parsedData.attendance || Array.isArray(parsedData)) {
+          // Auto-import the data
+          setIsLoading(true);
+          if (importAllData(content)) {
+            toast.success("File berhasil diimpor dan data telah dimuat");
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            toast.error("Format data tidak valid");
+          }
+          setIsLoading(false);
+        } else {
+          toast.error("Format file tidak valid. Pastikan file adalah export dari SIPS.");
+        }
+      } catch (error) {
+        toast.error("File bukan format JSON yang valid");
+      }
+    };
+    reader.onerror = () => {
+      toast.error("Gagal membaca file");
+    };
+    reader.readAsText(file, 'UTF-8');
+    
+    // Reset file input
+    event.target.value = '';
   };
 
   const handleClearAll = () => {
@@ -329,7 +399,7 @@ export function DataManager() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full">
@@ -390,7 +460,7 @@ export function DataManager() {
               className="w-full"
             >
               <HardDrive className="mr-2 h-4 w-4" />
-              Impor dari File
+              Impor File (Preview)
             </Button>
             <input
               ref={fileInputRef}
@@ -399,6 +469,37 @@ export function DataManager() {
               onChange={handleFileImport}
               className="hidden"
             />
+
+            <Button 
+              variant="default" 
+              onClick={() => autoFileInputRef.current?.click()}
+              className="w-full"
+              disabled={isLoading}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {isLoading ? "Mengimpor..." : "Impor File (Auto)"}
+            </Button>
+            <input
+              ref={autoFileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleFileImportAndProcess}
+              className="hidden"
+            />
+          </div>
+          
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium">Cara Import File:</p>
+                <ul className="list-disc list-inside mt-1 space-y-1">
+                  <li><strong>Impor File (Preview):</strong> Upload file, preview data, lalu klik "Impor Data"</li>
+                  <li><strong>Impor File (Auto):</strong> Upload file dan langsung import tanpa preview</li>
+                  <li>File harus berformat JSON (.json) dari export SIPS</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
