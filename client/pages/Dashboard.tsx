@@ -664,12 +664,14 @@ const schema = z
     jenisKelamin: z.enum(["Laki-laki", "Perempuan"]),
     agama: z.enum(agamaOptions),
     alamatDomisili: z.string().min(1),
+    noTeleponSiswa: z.string().min(1, "No Telepon/WA siswa harus diisi"),
     namaAyah: z.string().min(1),
     namaIbu: z.string().min(1),
     pekerjaanOrtu: z.enum(pekerjaanOptions),
     pekerjaanOrtuLain: z.string().optional(),
     jumlahSaudara: z.coerce.number().int().min(0),
     alamatOrtu: z.string().min(1),
+    noTeleponOrtu: z.string().min(1, "No Telepon/WA orang tua harus diisi"),
     asalSekolah: z.string().min(1),
     statusSiswa: z.enum(statusOptions),
     keterangan: z.array(z.enum(ketOptions)).optional().default([]),
@@ -771,12 +773,14 @@ function DataSiswaForm() {
         jenisKelamin: values.jenisKelamin,
         agama: values.agama,
         alamatDomisili: values.alamatDomisili,
+        noTeleponSiswa: values.noTeleponSiswa,
         namaAyah: values.namaAyah,
         namaIbu: values.namaIbu,
         pekerjaanOrtu: values.pekerjaanOrtu,
         pekerjaanOrtuLain: values.pekerjaanOrtuLain,
         jumlahSaudara: values.jumlahSaudara,
         alamatOrtu: values.alamatOrtu,
+        noTeleponOrtu: values.noTeleponOrtu,
         asalSekolah: values.asalSekolah,
         statusSiswa: values.statusSiswa,
         keterangan: values.keterangan,
@@ -800,12 +804,14 @@ function DataSiswaForm() {
         jenisKelamin: values.jenisKelamin,
         agama: values.agama,
         alamatDomisili: values.alamatDomisili,
+        noTeleponSiswa: values.noTeleponSiswa,
         namaAyah: values.namaAyah,
         namaIbu: values.namaIbu,
         pekerjaanOrtu: values.pekerjaanOrtu,
         pekerjaanOrtuLain: values.pekerjaanOrtuLain,
         jumlahSaudara: values.jumlahSaudara,
         alamatOrtu: values.alamatOrtu,
+        noTeleponOrtu: values.noTeleponOrtu,
         asalSekolah: values.asalSekolah,
         statusSiswa: values.statusSiswa,
         keterangan: values.keterangan,
@@ -829,12 +835,14 @@ function DataSiswaForm() {
       jenisKelamin: "Laki-laki",
       agama: "Islam",
       alamatDomisili: "",
+      noTeleponSiswa: "",
       namaAyah: "",
       namaIbu: "",
       pekerjaanOrtu: "Petani",
       pekerjaanOrtuLain: "",
       jumlahSaudara: 0,
       alamatOrtu: "",
+      noTeleponOrtu: "",
       asalSekolah: "",
       statusSiswa: "Aktif",
       keterangan: [],
@@ -856,12 +864,14 @@ function DataSiswaForm() {
       jenisKelamin: s.jenisKelamin || "Laki-laki",
       agama: s.agama || "Islam",
       alamatDomisili: s.alamatDomisili || "",
+      noTeleponSiswa: s.noTeleponSiswa || "",
       namaAyah: s.namaAyah || "",
       namaIbu: s.namaIbu || "",
       pekerjaanOrtu: s.pekerjaanOrtu || "Petani",
       pekerjaanOrtuLain: s.pekerjaanOrtuLain || "",
       jumlahSaudara: s.jumlahSaudara ?? 0,
       alamatOrtu: s.alamatOrtu || "",
+      noTeleponOrtu: s.noTeleponOrtu || "",
       asalSekolah: s.asalSekolah || "",
       statusSiswa: s.statusSiswa || "Aktif",
       keterangan: s.keterangan || [],
@@ -1237,6 +1247,24 @@ function DataSiswaForm() {
 
               <FormField
                 control={form.control}
+                name="noTeleponSiswa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>No Telepon/WA Siswa</FormLabel>
+                    <FormControl>
+                      <Input
+                        inputMode="tel"
+                        placeholder="08xxxxxxxxxx"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="alamatOrtu"
                 render={({ field }) => (
                   <FormItem>
@@ -1245,6 +1273,24 @@ function DataSiswaForm() {
                       <Textarea
                         rows={3}
                         placeholder="Alamat orang tua"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="noTeleponOrtu"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>No Telepon/WA Orang Tua</FormLabel>
+                    <FormControl>
+                      <Input
+                        inputMode="tel"
+                        placeholder="08xxxxxxxxxx"
                         {...field}
                       />
                     </FormControl>
@@ -1325,12 +1371,14 @@ function DataSiswaForm() {
                         jenisKelamin: "Laki-laki",
                         agama: "Islam",
                         alamatDomisili: "",
+                        noTeleponSiswa: "",
                         namaAyah: "",
                         namaIbu: "",
                         pekerjaanOrtu: "Petani",
                         pekerjaanOrtuLain: "",
                         jumlahSaudara: 0,
                         alamatOrtu: "",
+                        noTeleponOrtu: "",
                         asalSekolah: "",
                         statusSiswa: "Aktif",
                         keterangan: [],
@@ -1367,6 +1415,8 @@ function DataSiswaForm() {
                     <TableHead>NIS</TableHead>
                     <TableHead>JK</TableHead>
                     <TableHead>Agama</TableHead>
+                    <TableHead>Telepon Siswa</TableHead>
+                    <TableHead>Telepon Ortu</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-28">Aksi</TableHead>
                   </TableRow>
@@ -1393,6 +1443,8 @@ function DataSiswaForm() {
                       <TableCell>{s.nis}</TableCell>
                       <TableCell>{s.jenisKelamin}</TableCell>
                       <TableCell>{s.agama}</TableCell>
+                      <TableCell>{s.noTeleponSiswa || "-"}</TableCell>
+                      <TableCell>{s.noTeleponOrtu || "-"}</TableCell>
                       <TableCell>{s.statusSiswa}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -1458,6 +1510,14 @@ function DataSiswaForm() {
                       <div>
                         <span className="text-muted-foreground">Agama:</span>{" "}
                         {s.agama}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Telepon Siswa:</span>{" "}
+                        {s.noTeleponSiswa || "-"}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Telepon Ortu:</span>{" "}
+                        {s.noTeleponOrtu || "-"}
                       </div>
                       <div className="col-span-2">
                         <span className="text-muted-foreground">Status:</span>{" "}

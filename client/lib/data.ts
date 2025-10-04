@@ -11,12 +11,14 @@ export interface Student {
   jenisKelamin: "Laki-laki" | "Perempuan";
   agama: string;
   alamatDomisili: string;
+  noTeleponSiswa: string;
   namaAyah: string;
   namaIbu: string;
   pekerjaanOrtu: string;
   pekerjaanOrtuLain?: string;
   jumlahSaudara: number;
   alamatOrtu: string;
+  noTeleponOrtu: string;
   asalSekolah: string;
   statusSiswa: string;
   keterangan: string[];
