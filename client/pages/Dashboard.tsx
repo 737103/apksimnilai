@@ -487,13 +487,19 @@ function StatistikSection() {
         </CardHeader>
         <CardContent>
           <ChartContainer
-            config={{ nilai: { label: "Nilai", color: "hsl(var(--primary))" } }}
+            config={{ nilai: { label: "Nilai", color: "#10b981" } }}
             className="h-64"
           >
               <BarChart data={chartData}>
               <CartesianGrid vertical={false} />
               <XAxis dataKey="bulan" tickLine={false} axisLine={false} />
-              <Bar dataKey="nilai" fill="var(--color-nilai)" radius={6} />
+              <Bar 
+                dataKey="nilai" 
+                fill="#10b981" 
+                radius={6}
+                stroke="#059669"
+                strokeWidth={1}
+              />
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent hideLabel />}
@@ -572,13 +578,19 @@ function StatistikSection() {
         </CardHeader>
         <CardContent>
           <ChartContainer
-            config={{ kehadiran: { label: "Kehadiran (%)", color: "hsl(var(--accent))" } }}
+            config={{ kehadiran: { label: "Kehadiran (%)", color: "#3b82f6" } }}
             className="h-64"
           >
             <BarChart data={attendanceChartData}>
               <CartesianGrid vertical={false} />
               <XAxis dataKey="bulan" tickLine={false} axisLine={false} />
-              <Bar dataKey="kehadiran" fill="var(--color-kehadiran)" radius={6} />
+              <Bar 
+                dataKey="kehadiran" 
+                fill="#3b82f6" 
+                radius={6}
+                stroke="#1d4ed8"
+                strokeWidth={1}
+              />
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent hideLabel />}
