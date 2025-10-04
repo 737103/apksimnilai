@@ -667,11 +667,21 @@ const schema = z
     noTeleponSiswa: z.string().min(1, "No Telepon/WA siswa harus diisi"),
     namaAyah: z.string().min(1),
     namaIbu: z.string().min(1),
-    pekerjaanOrtu: z.enum(pekerjaanOptions),
-    pekerjaanOrtuLain: z.string().optional(),
+    pekerjaanAyah: z.enum(pekerjaanOptions),
+    pekerjaanAyahLain: z.string().optional(),
+    pekerjaanIbu: z.enum(pekerjaanOptions),
+    pekerjaanIbuLain: z.string().optional(),
+    anakKe: z.coerce.number().int().min(1, "Anak ke harus minimal 1"),
     jumlahSaudara: z.coerce.number().int().min(0),
+    diterimaDiKelas: z.string().min(1, "Kelas penerimaan harus diisi"),
+    diterimaPadaTanggal: z.string().min(1, "Tanggal penerimaan harus diisi"),
     alamatOrtu: z.string().min(1),
     noTeleponOrtu: z.string().min(1, "No Telepon/WA orang tua harus diisi"),
+    namaWali: z.string().optional(),
+    alamatWali: z.string().optional(),
+    noTeleponWali: z.string().optional(),
+    pekerjaanWali: z.enum(pekerjaanOptions).optional(),
+    pekerjaanWaliLain: z.string().optional(),
     asalSekolah: z.string().min(1),
     statusSiswa: z.enum(statusOptions),
     keterangan: z.array(z.enum(ketOptions)).optional().default([]),
@@ -692,10 +702,26 @@ const schema = z
   })
   .refine(
     (data) =>
-      data.pekerjaanOrtu !== "Lainnya" || !!data.pekerjaanOrtuLain?.trim(),
+      data.pekerjaanAyah !== "Lainnya" || !!data.pekerjaanAyahLain?.trim(),
     {
-      path: ["pekerjaanOrtuLain"],
-      message: "Harap isi pekerjaan lainnya",
+      path: ["pekerjaanAyahLain"],
+      message: "Harap isi pekerjaan ayah lainnya",
+    },
+  )
+  .refine(
+    (data) =>
+      data.pekerjaanIbu !== "Lainnya" || !!data.pekerjaanIbuLain?.trim(),
+    {
+      path: ["pekerjaanIbuLain"],
+      message: "Harap isi pekerjaan ibu lainnya",
+    },
+  )
+  .refine(
+    (data) =>
+      !data.pekerjaanWali || data.pekerjaanWali !== "Lainnya" || !!data.pekerjaanWaliLain?.trim(),
+    {
+      path: ["pekerjaanWaliLain"],
+      message: "Harap isi pekerjaan wali lainnya",
     },
   )
   .refine(
@@ -729,9 +755,14 @@ function DataSiswaForm() {
       alamatDomisili: "",
       namaAyah: "",
       namaIbu: "",
-      pekerjaanOrtu: "Petani",
-      pekerjaanOrtuLain: "",
+      pekerjaanAyah: "Petani",
+      pekerjaanAyahLain: "",
+      pekerjaanIbu: "Petani",
+      pekerjaanIbuLain: "",
+      anakKe: 1,
       jumlahSaudara: 0,
+      diterimaDiKelas: "VII",
+      diterimaPadaTanggal: "",
       alamatOrtu: "",
       asalSekolah: "",
       statusSiswa: "Aktif",
@@ -740,7 +771,8 @@ function DataSiswaForm() {
       foto: undefined,
     },
   });
-  const pekerjaanOrtuValue = form.watch("pekerjaanOrtu");
+  const pekerjaanAyahValue = form.watch("pekerjaanAyah");
+  const pekerjaanIbuValue = form.watch("pekerjaanIbu");
   const keteranganValue = form.watch("keterangan");
   const [preview, setPreview] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -776,11 +808,21 @@ function DataSiswaForm() {
         noTeleponSiswa: values.noTeleponSiswa,
         namaAyah: values.namaAyah,
         namaIbu: values.namaIbu,
-        pekerjaanOrtu: values.pekerjaanOrtu,
-        pekerjaanOrtuLain: values.pekerjaanOrtuLain,
+        pekerjaanAyah: values.pekerjaanAyah,
+        pekerjaanAyahLain: values.pekerjaanAyahLain,
+        pekerjaanIbu: values.pekerjaanIbu,
+        pekerjaanIbuLain: values.pekerjaanIbuLain,
+        anakKe: values.anakKe,
         jumlahSaudara: values.jumlahSaudara,
+        diterimaDiKelas: values.diterimaDiKelas,
+        diterimaPadaTanggal: values.diterimaPadaTanggal,
         alamatOrtu: values.alamatOrtu,
         noTeleponOrtu: values.noTeleponOrtu,
+        namaWali: values.namaWali,
+        alamatWali: values.alamatWali,
+        noTeleponWali: values.noTeleponWali,
+        pekerjaanWali: values.pekerjaanWali,
+        pekerjaanWaliLain: values.pekerjaanWaliLain,
         asalSekolah: values.asalSekolah,
         statusSiswa: values.statusSiswa,
         keterangan: values.keterangan,
@@ -807,11 +849,21 @@ function DataSiswaForm() {
         noTeleponSiswa: values.noTeleponSiswa,
         namaAyah: values.namaAyah,
         namaIbu: values.namaIbu,
-        pekerjaanOrtu: values.pekerjaanOrtu,
-        pekerjaanOrtuLain: values.pekerjaanOrtuLain,
+        pekerjaanAyah: values.pekerjaanAyah,
+        pekerjaanAyahLain: values.pekerjaanAyahLain,
+        pekerjaanIbu: values.pekerjaanIbu,
+        pekerjaanIbuLain: values.pekerjaanIbuLain,
+        anakKe: values.anakKe,
         jumlahSaudara: values.jumlahSaudara,
+        diterimaDiKelas: values.diterimaDiKelas,
+        diterimaPadaTanggal: values.diterimaPadaTanggal,
         alamatOrtu: values.alamatOrtu,
         noTeleponOrtu: values.noTeleponOrtu,
+        namaWali: values.namaWali,
+        alamatWali: values.alamatWali,
+        noTeleponWali: values.noTeleponWali,
+        pekerjaanWali: values.pekerjaanWali,
+        pekerjaanWaliLain: values.pekerjaanWaliLain,
         asalSekolah: values.asalSekolah,
         statusSiswa: values.statusSiswa,
         keterangan: values.keterangan,
@@ -838,11 +890,21 @@ function DataSiswaForm() {
       noTeleponSiswa: "",
       namaAyah: "",
       namaIbu: "",
-      pekerjaanOrtu: "Petani",
-      pekerjaanOrtuLain: "",
+      pekerjaanAyah: "Petani",
+      pekerjaanAyahLain: "",
+      pekerjaanIbu: "Petani",
+      pekerjaanIbuLain: "",
+      anakKe: 1,
       jumlahSaudara: 0,
+      diterimaDiKelas: "VII",
+      diterimaPadaTanggal: "",
       alamatOrtu: "",
       noTeleponOrtu: "",
+      namaWali: "",
+      alamatWali: "",
+      noTeleponWali: "",
+      pekerjaanWali: undefined,
+      pekerjaanWaliLain: "",
       asalSekolah: "",
       statusSiswa: "Aktif",
       keterangan: [],
@@ -867,11 +929,21 @@ function DataSiswaForm() {
       noTeleponSiswa: s.noTeleponSiswa || "",
       namaAyah: s.namaAyah || "",
       namaIbu: s.namaIbu || "",
-      pekerjaanOrtu: s.pekerjaanOrtu || "Petani",
-      pekerjaanOrtuLain: s.pekerjaanOrtuLain || "",
+      pekerjaanAyah: s.pekerjaanAyah || "Petani",
+      pekerjaanAyahLain: s.pekerjaanAyahLain || "",
+      pekerjaanIbu: s.pekerjaanIbu || "Petani",
+      pekerjaanIbuLain: s.pekerjaanIbuLain || "",
+      anakKe: s.anakKe ?? 1,
       jumlahSaudara: s.jumlahSaudara ?? 0,
+      diterimaDiKelas: s.diterimaDiKelas || "VII",
+      diterimaPadaTanggal: s.diterimaPadaTanggal || "",
       alamatOrtu: s.alamatOrtu || "",
       noTeleponOrtu: s.noTeleponOrtu || "",
+      namaWali: s.namaWali || "",
+      alamatWali: s.alamatWali || "",
+      noTeleponWali: s.noTeleponWali || "",
+      pekerjaanWali: s.pekerjaanWali || undefined,
+      pekerjaanWaliLain: s.pekerjaanWaliLain || "",
       asalSekolah: s.asalSekolah || "",
       statusSiswa: s.statusSiswa || "Aktif",
       keterangan: s.keterangan || [],
@@ -1108,17 +1180,17 @@ function DataSiswaForm() {
 
                 <FormField
                   control={form.control}
-                  name="pekerjaanOrtu"
+                  name="pekerjaanAyah"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Pekerjaan Orang Tua</FormLabel>
+                      <FormLabel>Pekerjaan Ayah</FormLabel>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Pilih" />
+                            <SelectValue placeholder="Pilih pekerjaan ayah" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -1129,19 +1201,19 @@ function DataSiswaForm() {
                           ))}
                         </SelectContent>
                       </Select>
-                      {pekerjaanOrtuValue === "Lainnya" && (
+                      {pekerjaanAyahValue === "Lainnya" && (
                         <div className="mt-2">
                           <FormField
                             control={form.control}
-                            name="pekerjaanOrtuLain"
+                            name="pekerjaanAyahLain"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="text-xs">
-                                  Tuliskan Pekerjaan Lainnya
+                                  Tuliskan Pekerjaan Ayah Lainnya
                                 </FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder="Pekerjaan lainnya"
+                                    placeholder="Pekerjaan ayah lainnya"
                                     {...field}
                                   />
                                 </FormControl>
@@ -1151,6 +1223,118 @@ function DataSiswaForm() {
                           />
                         </div>
                       )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="pekerjaanIbu"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pekerjaan Ibu</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih pekerjaan ibu" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {pekerjaanOptions.map((p) => (
+                            <SelectItem key={p} value={p}>
+                              {p}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {pekerjaanIbuValue === "Lainnya" && (
+                        <div className="mt-2">
+                          <FormField
+                            control={form.control}
+                            name="pekerjaanIbuLain"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Tuliskan Pekerjaan Ibu Lainnya
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Pekerjaan ibu lainnya"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="anakKe"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Anak Ke</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="1"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="diterimaDiKelas"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Diterima di Kelas</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih kelas" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="VII">VII</SelectItem>
+                          <SelectItem value="VIII">VIII</SelectItem>
+                          <SelectItem value="IX">IX</SelectItem>
+                          <SelectItem value="X">X</SelectItem>
+                          <SelectItem value="XI">XI</SelectItem>
+                          <SelectItem value="XII">XII</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="diterimaPadaTanggal"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Diterima pada Tanggal</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -1299,6 +1483,111 @@ function DataSiswaForm() {
                 )}
               />
 
+              {/* Data Wali */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold mb-4">Data Wali (Opsional)</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="namaWali"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Wali</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nama wali" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="alamatWali"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Alamat Wali</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={3}
+                          placeholder="Alamat wali"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="noTeleponWali"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>No Telepon/WA Wali</FormLabel>
+                      <FormControl>
+                        <Input
+                          inputMode="tel"
+                          placeholder="08xxxxxxxxxx"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="pekerjaanWali"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pekerjaan Wali</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih pekerjaan wali" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {pekerjaanOptions.map((p) => (
+                            <SelectItem key={p} value={p}>
+                              {p}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {form.watch("pekerjaanWali") === "Lainnya" && (
+                        <div className="mt-2">
+                          <FormField
+                            control={form.control}
+                            name="pekerjaanWaliLain"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">
+                                  Tuliskan Pekerjaan Wali Lainnya
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Pekerjaan wali lainnya"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <div>
                 <FormLabel>Keterangan Lainnya</FormLabel>
                 <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 mt-2">
@@ -1374,8 +1663,10 @@ function DataSiswaForm() {
                         noTeleponSiswa: "",
                         namaAyah: "",
                         namaIbu: "",
-                        pekerjaanOrtu: "Petani",
-                        pekerjaanOrtuLain: "",
+                        pekerjaanAyah: "Petani",
+                        pekerjaanAyahLain: "",
+                        pekerjaanIbu: "Petani",
+                        pekerjaanIbuLain: "",
                         jumlahSaudara: 0,
                         alamatOrtu: "",
                         noTeleponOrtu: "",
@@ -1417,6 +1708,11 @@ function DataSiswaForm() {
                     <TableHead>Agama</TableHead>
                     <TableHead>Telepon Siswa</TableHead>
                     <TableHead>Telepon Ortu</TableHead>
+                    <TableHead>Anak Ke</TableHead>
+                    <TableHead>Pekerjaan Ayah</TableHead>
+                    <TableHead>Pekerjaan Ibu</TableHead>
+                    <TableHead>Diterima di Kelas</TableHead>
+                    <TableHead>Nama Wali</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-28">Aksi</TableHead>
                   </TableRow>
@@ -1445,6 +1741,11 @@ function DataSiswaForm() {
                       <TableCell>{s.agama}</TableCell>
                       <TableCell>{s.noTeleponSiswa || "-"}</TableCell>
                       <TableCell>{s.noTeleponOrtu || "-"}</TableCell>
+                      <TableCell>{s.anakKe || "-"}</TableCell>
+                      <TableCell>{s.pekerjaanAyah || "-"}</TableCell>
+                      <TableCell>{s.pekerjaanIbu || "-"}</TableCell>
+                      <TableCell>{s.diterimaDiKelas || "-"}</TableCell>
+                      <TableCell>{s.namaWali || "-"}</TableCell>
                       <TableCell>{s.statusSiswa}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -1518,6 +1819,30 @@ function DataSiswaForm() {
                       <div>
                         <span className="text-muted-foreground">Telepon Ortu:</span>{" "}
                         {s.noTeleponOrtu || "-"}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Anak Ke:</span>{" "}
+                        {s.anakKe || "-"}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Pekerjaan Ayah:</span>{" "}
+                        {s.pekerjaanAyah || "-"}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Pekerjaan Ibu:</span>{" "}
+                        {s.pekerjaanIbu || "-"}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Diterima di Kelas:</span>{" "}
+                        {s.diterimaDiKelas || "-"}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Nama Wali:</span>{" "}
+                        {s.namaWali || "-"}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Telepon Wali:</span>{" "}
+                        {s.noTeleponWali || "-"}
                       </div>
                       <div className="col-span-2">
                         <span className="text-muted-foreground">Status:</span>{" "}
