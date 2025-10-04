@@ -24,9 +24,11 @@ import {
   Users2,
   Pencil,
   Trash2,
+  Printer,
   Database,
 } from "lucide-react";
 import { logout } from "@/lib/auth";
+import { generateBiodataWord } from "@/lib/biodata-export";
 import {
   ChartContainer,
   ChartTooltip,
@@ -961,6 +963,16 @@ function DataSiswaForm() {
     toast.success("Data siswa dihapus");
   }
 
+  async function handlePrintBiodata(student: any) {
+    try {
+      await generateBiodataWord(student);
+      toast.success("Biodata berhasil diunduh");
+    } catch (error) {
+      console.error("Error generating biodata:", error);
+      toast.error("Gagal membuat biodata");
+    }
+  }
+
   return (
     <div className="grid gap-4">
       <Card>
@@ -1758,6 +1770,13 @@ function DataSiswaForm() {
                           </Button>
                           <Button
                             size="sm"
+                            variant="secondary"
+                            onClick={() => handlePrintBiodata(s)}
+                          >
+                            <Printer className="mr-1 h-4 w-4" /> Cetak
+                          </Button>
+                          <Button
+                            size="sm"
                             variant="destructive"
                             onClick={() => handleDelete(s.id)}
                           >
@@ -1857,6 +1876,14 @@ function DataSiswaForm() {
                         className="flex-1"
                       >
                         <Pencil className="mr-1 h-4 w-4" /> Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handlePrintBiodata(s)}
+                        className="flex-1"
+                      >
+                        <Printer className="mr-1 h-4 w-4" /> Cetak
                       </Button>
                       <Button
                         size="sm"
