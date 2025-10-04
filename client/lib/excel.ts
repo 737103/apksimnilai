@@ -14,12 +14,21 @@ export class ExcelExporter {
       'Jenis Kelamin': student.jenisKelamin,
       'Agama': student.agama,
       'Alamat Domisili': student.alamatDomisili,
+      'No Telepon Siswa': student.noTeleponSiswa,
       'Nama Ayah': student.namaAyah,
       'Nama Ibu': student.namaIbu,
-      'Pekerjaan Orang Tua': student.pekerjaanOrtu,
-      'Pekerjaan Lainnya': student.pekerjaanOrtuLain || '',
+      'Pekerjaan Ayah': student.pekerjaanAyah === 'Lainnya' ? student.pekerjaanAyahLain : student.pekerjaanAyah,
+      'Pekerjaan Ibu': student.pekerjaanIbu === 'Lainnya' ? student.pekerjaanIbuLain : student.pekerjaanIbu,
+      'Anak Ke': student.anakKe,
       'Jumlah Saudara': student.jumlahSaudara,
+      'Diterima di Kelas': student.diterimaDiKelas,
+      'Diterima pada Tanggal': student.diterimaPadaTanggal,
       'Alamat Orang Tua': student.alamatOrtu,
+      'No Telepon Orang Tua': student.noTeleponOrtu,
+      'Nama Wali': student.namaWali || '',
+      'Alamat Wali': student.alamatWali || '',
+      'No Telepon Wali': student.noTeleponWali || '',
+      'Pekerjaan Wali': student.pekerjaanWali === 'Lainnya' ? student.pekerjaanWaliLain : student.pekerjaanWali || '',
       'Asal Sekolah': student.asalSekolah,
       'Status Siswa': student.statusSiswa,
       'Keterangan': student.keterangan.join(', '),
@@ -43,12 +52,21 @@ export class ExcelExporter {
       { wch: 12 }, // Jenis Kelamin
       { wch: 10 }, // Agama
       { wch: 30 }, // Alamat Domisili
+      { wch: 15 }, // No Telepon Siswa
       { wch: 20 }, // Nama Ayah
       { wch: 20 }, // Nama Ibu
-      { wch: 20 }, // Pekerjaan Orang Tua
-      { wch: 20 }, // Pekerjaan Lainnya
+      { wch: 20 }, // Pekerjaan Ayah
+      { wch: 20 }, // Pekerjaan Ibu
+      { wch: 8 },  // Anak Ke
       { wch: 12 }, // Jumlah Saudara
+      { wch: 15 }, // Diterima di Kelas
+      { wch: 18 }, // Diterima pada Tanggal
       { wch: 30 }, // Alamat Orang Tua
+      { wch: 18 }, // No Telepon Orang Tua
+      { wch: 20 }, // Nama Wali
+      { wch: 30 }, // Alamat Wali
+      { wch: 15 }, // No Telepon Wali
+      { wch: 20 }, // Pekerjaan Wali
       { wch: 20 }, // Asal Sekolah
       { wch: 12 }, // Status Siswa
       { wch: 30 }, // Keterangan
@@ -159,12 +177,21 @@ export class ExcelExporter {
       'Jenis Kelamin': student.jenisKelamin,
       'Agama': student.agama,
       'Alamat Domisili': student.alamatDomisili,
+      'No Telepon Siswa': student.noTeleponSiswa,
       'Nama Ayah': student.namaAyah,
       'Nama Ibu': student.namaIbu,
-      'Pekerjaan Orang Tua': student.pekerjaanOrtu,
-      'Pekerjaan Lainnya': student.pekerjaanOrtuLain || '',
+      'Pekerjaan Ayah': student.pekerjaanAyah === 'Lainnya' ? student.pekerjaanAyahLain : student.pekerjaanAyah,
+      'Pekerjaan Ibu': student.pekerjaanIbu === 'Lainnya' ? student.pekerjaanIbuLain : student.pekerjaanIbu,
+      'Anak Ke': student.anakKe,
       'Jumlah Saudara': student.jumlahSaudara,
+      'Diterima di Kelas': student.diterimaDiKelas,
+      'Diterima pada Tanggal': student.diterimaPadaTanggal,
       'Alamat Orang Tua': student.alamatOrtu,
+      'No Telepon Orang Tua': student.noTeleponOrtu,
+      'Nama Wali': student.namaWali || '',
+      'Alamat Wali': student.alamatWali || '',
+      'No Telepon Wali': student.noTeleponWali || '',
+      'Pekerjaan Wali': student.pekerjaanWali === 'Lainnya' ? student.pekerjaanWaliLain : student.pekerjaanWali || '',
       'Asal Sekolah': student.asalSekolah,
       'Status Siswa': student.statusSiswa,
       'Keterangan': student.keterangan.join(', '),

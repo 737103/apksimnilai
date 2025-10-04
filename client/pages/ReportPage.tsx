@@ -44,6 +44,7 @@ export default function ReportPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [subjectFilter, setSubjectFilter] = useState("all");
+  const [classFilter, setClassFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
 
   // Get all data
@@ -62,6 +63,15 @@ export default function ReportPage() {
     return Array.from(subjectSet);
   }, [grades]);
 
+  // Get unique classes from students
+  const classes = useMemo(() => {
+    const classSet = new Set<string>();
+    students.forEach(student => {
+      if (student.diterimaDiKelas) classSet.add(student.diterimaDiKelas);
+    });
+    return Array.from(classSet).sort();
+  }, [students]);
+
   // Filter students
   const filteredStudents = useMemo(() => {
     return students.filter(student => {
@@ -69,13 +79,17 @@ export default function ReportPage() {
         student.namaLengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.nik.includes(searchTerm) ||
         student.nisn.includes(searchTerm) ||
-        student.nis.includes(searchTerm);
+        student.nis.includes(searchTerm) ||
+        student.noTeleponSiswa.includes(searchTerm) ||
+        student.noTeleponOrtu.includes(searchTerm) ||
+        (student.namaWali && student.namaWali.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesStatus = statusFilter === "all" || student.statusSiswa === statusFilter;
+      const matchesClass = classFilter === "all" || student.diterimaDiKelas === classFilter;
       
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && matchesClass;
     });
-  }, [students, searchTerm, statusFilter]);
+  }, [students, searchTerm, statusFilter, classFilter]);
 
   // Filter grades
   const filteredGrades = useMemo(() => {
@@ -185,6 +199,9 @@ export default function ReportPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Total Siswa</p>
                 <p className="text-2xl font-bold">{stats.totalStudents}</p>
+                <p className="text-xs text-muted-foreground">
+                  Aktif: {students.filter(s => s.statusSiswa === 'Aktif').length}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -196,6 +213,9 @@ export default function ReportPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Total Nilai</p>
                 <p className="text-2xl font-bold">{stats.totalGrades}</p>
+                <p className="text-xs text-muted-foreground">
+                  Rata-rata: {stats.averageGrade}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -207,6 +227,9 @@ export default function ReportPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Record Kehadiran</p>
                 <p className="text-2xl font-bold">{stats.totalAttendanceRecords}</p>
+                <p className="text-xs text-muted-foreground">
+                  Rata-rata: {stats.averageAttendance}%
+                </p>
               </div>
             </div>
           </CardContent>
@@ -216,8 +239,11 @@ export default function ReportPage() {
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-purple-600" />
               <div>
-                <p className="text-sm text-muted-foreground">Rata-rata Nilai</p>
-                <p className="text-2xl font-bold">{stats.averageGrade}</p>
+                <p className="text-sm text-muted-foreground">Kelas Tersedia</p>
+                <p className="text-2xl font-bold">{classes.length}</p>
+                <p className="text-xs text-muted-foreground">
+                  {classes.join(', ')}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -233,14 +259,14 @@ export default function ReportPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <Label htmlFor="search">Pencarian</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
-                  placeholder="Cari nama, NIK, NISN, NIS..."
+                  placeholder="Cari nama, NIK, NISN, NIS, telepon..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -259,6 +285,22 @@ export default function ReportPage() {
                   <SelectItem value="Meninggal">Meninggal</SelectItem>
                   <SelectItem value="Pindahan">Pindahan</SelectItem>
                   <SelectItem value="Pindah Sekolah">Pindah Sekolah</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="class">Kelas</Label>
+              <Select value={classFilter} onValueChange={setClassFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih kelas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Kelas</SelectItem>
+                  {classes.map(classItem => (
+                    <SelectItem key={classItem} value={classItem}>
+                      {classItem}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -371,7 +413,9 @@ export default function ReportPage() {
                   <TableRow>
                     <TableHead>Nama</TableHead>
                     <TableHead>NIK</TableHead>
+                    <TableHead>Kelas</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Telepon</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -379,7 +423,9 @@ export default function ReportPage() {
                     <TableRow key={student.id}>
                       <TableCell className="font-medium">{student.namaLengkap}</TableCell>
                       <TableCell>{student.nik}</TableCell>
+                      <TableCell>{student.diterimaDiKelas || '-'}</TableCell>
                       <TableCell>{student.statusSiswa}</TableCell>
+                      <TableCell>{student.noTeleponSiswa || '-'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -404,6 +450,7 @@ export default function ReportPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nama</TableHead>
+                    <TableHead>Kelas</TableHead>
                     <TableHead>Mapel</TableHead>
                     <TableHead>Nilai</TableHead>
                   </TableRow>
@@ -412,6 +459,7 @@ export default function ReportPage() {
                   {filteredGrades.slice(0, 10).map(grade => (
                     <TableRow key={grade.id}>
                       <TableCell className="font-medium">{grade.namaLengkap}</TableCell>
+                      <TableCell>{grade.kelas || '-'}</TableCell>
                       <TableCell>
                         {grade.mataPelajaran === 'Lainnya' ? grade.mataPelajaranLain : grade.mataPelajaran}
                       </TableCell>
@@ -441,6 +489,7 @@ export default function ReportPage() {
                   <TableRow>
                     <TableHead>Nama</TableHead>
                     <TableHead>Mapel</TableHead>
+                    <TableHead>Hadir</TableHead>
                     <TableHead>%</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -449,6 +498,7 @@ export default function ReportPage() {
                     <TableRow key={att.id}>
                       <TableCell className="font-medium">{att.namaLengkap}</TableCell>
                       <TableCell>{att.mapel}</TableCell>
+                      <TableCell>{att.hadir}/{att.hadir + att.alpa + att.sakit + att.izin}</TableCell>
                       <TableCell>{att.persen.toFixed(1)}%</TableCell>
                     </TableRow>
                   ))}
