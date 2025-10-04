@@ -22,10 +22,10 @@
   },
   "dependencies": {
     "@types/xlsx": "^0.0.36",
-    "docx": "^9.5.1",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
-    "file-saver": "^2.0.5",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.3",
     "xlsx": "^0.18.5",
     "zod": "^3.25.76"
   },
