@@ -803,6 +803,31 @@ function DataSiswaForm() {
     const curr: any[] = JSON.parse(
       localStorage.getItem("sips_students") || "[]",
     );
+    // Uniqueness checks for NIK, NISN, and NIS
+    const nikExists = curr.find(
+      (s: any) => s.nik === values.nik && s.id !== editingId,
+    );
+    if (nikExists) {
+      form.setError("nik", { type: "manual", message: "NIK sudah digunakan oleh siswa lain" });
+      toast.error("NIK sudah digunakan oleh siswa lain");
+      return;
+    }
+    const nisnExists = curr.find(
+      (s: any) => s.nisn === values.nisn && s.id !== editingId,
+    );
+    if (nisnExists) {
+      form.setError("nisn", { type: "manual", message: "NISN sudah digunakan oleh siswa lain" });
+      toast.error("NISN sudah digunakan oleh siswa lain");
+      return;
+    }
+    const nisExists = curr.find(
+      (s: any) => s.nis === values.nis && s.id !== editingId,
+    );
+    if (nisExists) {
+      form.setError("nis", { type: "manual", message: "NIS sudah digunakan oleh siswa lain" });
+      toast.error("NIS sudah digunakan oleh siswa lain");
+      return;
+    }
     const file = values.foto as File | undefined;
     let fotoUrl: string | undefined = undefined;
     if (file) {
