@@ -1,41 +1,55 @@
 import * as XLSX from 'xlsx';
 import { Student, Grade, Attendance } from './data';
 
+// Helper function to ensure data has required fields
+function ensureStudentFields(student: any): Student {
+  const now = new Date().toISOString();
+  return {
+    ...student,
+    keteranganLain: student.keteranganLain || '',
+    createdAt: student.createdAt || now,
+    updatedAt: student.updatedAt || now,
+  };
+}
+
 // Utility functions for Excel export
 export class ExcelExporter {
   static exportStudents(students: Student[], filename?: string) {
-    const data = students.map(student => ({
-      'Nama Lengkap': student.namaLengkap,
-      'NIK': student.nik,
-      'NISN': student.nisn,
-      'NIS': student.nis,
-      'Tempat Lahir': student.tempatLahir,
-      'Tanggal Lahir': student.tanggalLahir,
-      'Jenis Kelamin': student.jenisKelamin,
-      'Agama': student.agama,
-      'Alamat Domisili': student.alamatDomisili,
-      'No Telepon Siswa': student.noTeleponSiswa,
-      'Nama Ayah': student.namaAyah,
-      'Nama Ibu': student.namaIbu,
-      'Pekerjaan Ayah': student.pekerjaanAyah === 'Lainnya' ? student.pekerjaanAyahLain : student.pekerjaanAyah,
-      'Pekerjaan Ibu': student.pekerjaanIbu === 'Lainnya' ? student.pekerjaanIbuLain : student.pekerjaanIbu,
-      'Anak Ke': student.anakKe,
-      'Jumlah Saudara': student.jumlahSaudara,
-      'Diterima di Kelas': student.diterimaDiKelas,
-      'Diterima pada Tanggal': student.diterimaPadaTanggal,
-      'Alamat Orang Tua': student.alamatOrtu,
-      'No Telepon Orang Tua': student.noTeleponOrtu,
-      'Nama Wali': student.namaWali || '',
-      'Alamat Wali': student.alamatWali || '',
-      'No Telepon Wali': student.noTeleponWali || '',
-      'Pekerjaan Wali': student.pekerjaanWali === 'Lainnya' ? student.pekerjaanWaliLain : student.pekerjaanWali || '',
-      'Asal Sekolah': student.asalSekolah,
-      'Status Siswa': student.statusSiswa,
-      'Keterangan': student.keterangan.join(', '),
-      'Keterangan Lainnya': student.keteranganLain || '',
-      'Tanggal Dibuat': new Date(student.createdAt).toLocaleDateString('id-ID'),
-      'Tanggal Diperbarui': new Date(student.updatedAt).toLocaleDateString('id-ID')
-    }));
+    const data = students.map((student, index) => {
+      const safeStudent = ensureStudentFields(student);
+      return {
+        'Nama Lengkap': safeStudent.namaLengkap,
+        'NIK': safeStudent.nik,
+        'NISN': safeStudent.nisn,
+        'NIS': safeStudent.nis,
+        'Tempat Lahir': safeStudent.tempatLahir,
+        'Tanggal Lahir': safeStudent.tanggalLahir,
+        'Jenis Kelamin': safeStudent.jenisKelamin,
+        'Agama': safeStudent.agama,
+        'Alamat Domisili': safeStudent.alamatDomisili,
+        'No Telepon Siswa': safeStudent.noTeleponSiswa,
+        'Nama Ayah': safeStudent.namaAyah,
+        'Nama Ibu': safeStudent.namaIbu,
+        'Pekerjaan Ayah': safeStudent.pekerjaanAyah === 'Lainnya' ? safeStudent.pekerjaanAyahLain : safeStudent.pekerjaanAyah,
+        'Pekerjaan Ibu': safeStudent.pekerjaanIbu === 'Lainnya' ? safeStudent.pekerjaanIbuLain : safeStudent.pekerjaanIbu,
+        'Anak Ke': safeStudent.anakKe,
+        'Jumlah Saudara': safeStudent.jumlahSaudara,
+        'Diterima di Kelas': safeStudent.diterimaDiKelas,
+        'Diterima pada Tanggal': safeStudent.diterimaPadaTanggal,
+        'Alamat Orang Tua': safeStudent.alamatOrtu,
+        'No Telepon Orang Tua': safeStudent.noTeleponOrtu,
+        'Nama Wali': safeStudent.namaWali || '',
+        'Alamat Wali': safeStudent.alamatWali || '',
+        'No Telepon Wali': safeStudent.noTeleponWali || '',
+        'Pekerjaan Wali': safeStudent.pekerjaanWali === 'Lainnya' ? safeStudent.pekerjaanWaliLain : safeStudent.pekerjaanWali || '',
+        'Asal Sekolah': safeStudent.asalSekolah,
+        'Status Siswa': safeStudent.statusSiswa,
+        'Keterangan': safeStudent.keterangan?.join(', ') || '',
+        'Keterangan Lainnya': safeStudent.keteranganLain || '',
+        'Tanggal Dibuat': new Date(safeStudent.createdAt).toLocaleDateString('id-ID'),
+        'Tanggal Diperbarui': new Date(safeStudent.updatedAt).toLocaleDateString('id-ID')
+      };
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
@@ -71,8 +85,8 @@ export class ExcelExporter {
       { wch: 12 }, // Status Siswa
       { wch: 30 }, // Keterangan
       { wch: 20 }, // Keterangan Lainnya
-      { wch: 12 }, // Tanggal Dibuat
-      { wch: 12 }  // Tanggal Diperbarui
+      { wch: 15 }, // Tanggal Dibuat
+      { wch: 15 }  // Tanggal Diperbarui
     ];
     worksheet['!cols'] = colWidths;
 
@@ -167,36 +181,41 @@ export class ExcelExporter {
     const workbook = XLSX.utils.book_new();
 
     // Students sheet
-    const studentsData = students.map(student => ({
-      'Nama Lengkap': student.namaLengkap,
-      'NIK': student.nik,
-      'NISN': student.nisn,
-      'NIS': student.nis,
-      'Tempat Lahir': student.tempatLahir,
-      'Tanggal Lahir': student.tanggalLahir,
-      'Jenis Kelamin': student.jenisKelamin,
-      'Agama': student.agama,
-      'Alamat Domisili': student.alamatDomisili,
-      'No Telepon Siswa': student.noTeleponSiswa,
-      'Nama Ayah': student.namaAyah,
-      'Nama Ibu': student.namaIbu,
-      'Pekerjaan Ayah': student.pekerjaanAyah === 'Lainnya' ? student.pekerjaanAyahLain : student.pekerjaanAyah,
-      'Pekerjaan Ibu': student.pekerjaanIbu === 'Lainnya' ? student.pekerjaanIbuLain : student.pekerjaanIbu,
-      'Anak Ke': student.anakKe,
-      'Jumlah Saudara': student.jumlahSaudara,
-      'Diterima di Kelas': student.diterimaDiKelas,
-      'Diterima pada Tanggal': student.diterimaPadaTanggal,
-      'Alamat Orang Tua': student.alamatOrtu,
-      'No Telepon Orang Tua': student.noTeleponOrtu,
-      'Nama Wali': student.namaWali || '',
-      'Alamat Wali': student.alamatWali || '',
-      'No Telepon Wali': student.noTeleponWali || '',
-      'Pekerjaan Wali': student.pekerjaanWali === 'Lainnya' ? student.pekerjaanWaliLain : student.pekerjaanWali || '',
-      'Asal Sekolah': student.asalSekolah,
-      'Status Siswa': student.statusSiswa,
-      'Keterangan': student.keterangan.join(', '),
-      'Keterangan Lainnya': student.keteranganLain || ''
-    }));
+    const studentsData = students.map(student => {
+      const safeStudent = ensureStudentFields(student);
+      return {
+        'Nama Lengkap': safeStudent.namaLengkap,
+        'NIK': safeStudent.nik,
+        'NISN': safeStudent.nisn,
+        'NIS': safeStudent.nis,
+        'Tempat Lahir': safeStudent.tempatLahir,
+        'Tanggal Lahir': safeStudent.tanggalLahir,
+        'Jenis Kelamin': safeStudent.jenisKelamin,
+        'Agama': safeStudent.agama,
+        'Alamat Domisili': safeStudent.alamatDomisili,
+        'No Telepon Siswa': safeStudent.noTeleponSiswa,
+        'Nama Ayah': safeStudent.namaAyah,
+        'Nama Ibu': safeStudent.namaIbu,
+        'Pekerjaan Ayah': safeStudent.pekerjaanAyah === 'Lainnya' ? safeStudent.pekerjaanAyahLain : safeStudent.pekerjaanAyah,
+        'Pekerjaan Ibu': safeStudent.pekerjaanIbu === 'Lainnya' ? safeStudent.pekerjaanIbuLain : safeStudent.pekerjaanIbu,
+        'Anak Ke': safeStudent.anakKe,
+        'Jumlah Saudara': safeStudent.jumlahSaudara,
+        'Diterima di Kelas': safeStudent.diterimaDiKelas,
+        'Diterima pada Tanggal': safeStudent.diterimaPadaTanggal,
+        'Alamat Orang Tua': safeStudent.alamatOrtu,
+        'No Telepon Orang Tua': safeStudent.noTeleponOrtu,
+        'Nama Wali': safeStudent.namaWali || '',
+        'Alamat Wali': safeStudent.alamatWali || '',
+        'No Telepon Wali': safeStudent.noTeleponWali || '',
+        'Pekerjaan Wali': safeStudent.pekerjaanWali === 'Lainnya' ? safeStudent.pekerjaanWaliLain : safeStudent.pekerjaanWali || '',
+        'Asal Sekolah': safeStudent.asalSekolah,
+        'Status Siswa': safeStudent.statusSiswa,
+        'Keterangan': safeStudent.keterangan?.join(', ') || '',
+        'Keterangan Lainnya': safeStudent.keteranganLain || '',
+        'Tanggal Dibuat': new Date(safeStudent.createdAt).toLocaleDateString('id-ID'),
+        'Tanggal Diperbarui': new Date(safeStudent.updatedAt).toLocaleDateString('id-ID')
+      };
+    });
 
     const studentsSheet = XLSX.utils.json_to_sheet(studentsData);
     XLSX.utils.book_append_sheet(workbook, studentsSheet, 'Data Siswa');

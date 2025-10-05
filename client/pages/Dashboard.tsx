@@ -738,7 +738,26 @@ const schema = z
 function DataSiswaForm() {
   const [students, setStudents] = useState<any[]>(() => {
     try {
-      return JSON.parse(localStorage.getItem("sips_students") || "[]");
+      const data = JSON.parse(localStorage.getItem("sips_students") || "[]");
+      
+      // Migrate old data to ensure all required fields exist
+      const migratedData = data.map((student: any) => {
+        const now = new Date().toISOString();
+        return {
+          ...student,
+          keteranganLain: student.keteranganLain || '',
+          createdAt: student.createdAt || now,
+          updatedAt: student.updatedAt || now,
+        };
+      });
+      
+      // Save migrated data back to localStorage if migration was needed
+      const needsMigration = data.some((student: any) => !student.createdAt || !student.updatedAt || !student.keteranganLain);
+      if (needsMigration) {
+        localStorage.setItem("sips_students", JSON.stringify(migratedData));
+      }
+      
+      return migratedData;
     } catch {
       return [];
     }
@@ -778,6 +797,7 @@ function DataSiswaForm() {
   const keteranganValue = form.watch("keterangan");
   const [preview, setPreview] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+
 
   const onSubmit = async (values: z.infer<typeof schema>) => {
     const curr: any[] = JSON.parse(
@@ -830,6 +850,7 @@ function DataSiswaForm() {
         keterangan: values.keterangan,
         keteranganLain: values.keteranganLain,
         fotoUrl: fotoUrl ?? existing.fotoUrl,
+        updatedAt: new Date().toISOString(),
       };
       const next = curr.map((s) => (s.id === editingId ? updated : s));
       localStorage.setItem("sips_students", JSON.stringify(next));
@@ -905,7 +926,7 @@ function DataSiswaForm() {
       namaWali: "",
       alamatWali: "",
       noTeleponWali: "",
-      pekerjaanWali: undefined,
+      pekerjaanWali: "Petani",
       pekerjaanWaliLain: "",
       asalSekolah: "",
       statusSiswa: "Aktif",
@@ -2009,7 +2030,7 @@ function InputNilaiPage() {
       kelas: "VII",
       tahunAjaran: "2024/2025",
       semester: "Ganjil",
-      kompetensi: [""],
+      kompetensi: [],
       nilai: 0,
       keterangan: "",
     },
@@ -2058,7 +2079,7 @@ function InputNilaiPage() {
       semester: g.semester || "Ganjil",
       kompetensi: Array.isArray(g.kompetensi)
         ? g.kompetensi
-        : [String(g.kompetensi || "")],
+        : [],
       nilai: g.nilai,
       keterangan: g.keterangan || "",
     });
@@ -2086,7 +2107,7 @@ function InputNilaiPage() {
       kelas: "VII",
       tahunAjaran: "2024/2025",
       semester: "Ganjil",
-      kompetensi: [""],
+      kompetensi: [],
       nilai: 0,
       keterangan: "",
     });
