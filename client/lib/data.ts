@@ -109,10 +109,14 @@ class DataManager<T> {
   }
 
   getAll(): T[] {
+    // Always reload from localStorage to reflect latest cross-page updates
+    this.load();
     return [...this.data];
   }
 
   getById(id: string): T | undefined {
+    // Ensure the freshest snapshot before lookup
+    this.load();
     return this.data.find((item: any) => item.id === id);
   }
 
@@ -155,6 +159,8 @@ class DataManager<T> {
   }
 
   search(query: string, fields: (keyof T)[]): T[] {
+    // Reload to ensure search uses latest data
+    this.load();
     if (!query.trim()) return this.data;
 
     const q = query.toLowerCase();
@@ -167,6 +173,7 @@ class DataManager<T> {
   }
 
   export(): string {
+    this.load();
     return JSON.stringify(this.data, null, 2);
   }
 
@@ -190,6 +197,7 @@ class DataManager<T> {
   }
 
   get count(): number {
+    this.load();
     return this.data.length;
   }
 }
