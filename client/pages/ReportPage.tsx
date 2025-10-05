@@ -369,6 +369,191 @@ export default function ReportPage() {
         </CardContent>
       </Card>
 
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Quick Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Button 
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("all");
+                setSubjectFilter("all");
+                setClassFilter("all");
+                toast.success("Filter telah direset");
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              Reset Filter
+            </Button>
+            <Button 
+              onClick={() => {
+                const activeStudents = students.filter(s => s.statusSiswa === 'Aktif');
+                setSearchTerm("");
+                setStatusFilter("Aktif");
+                setSubjectFilter("all");
+                setClassFilter("all");
+                toast.success(`Menampilkan ${activeStudents.length} siswa aktif`);
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              <Users2 className="mr-2 h-4 w-4" />
+              Siswa Aktif
+            </Button>
+            <Button 
+              onClick={() => {
+                const highGrades = grades.filter(g => g.nilai >= 80);
+                setSearchTerm("");
+                setStatusFilter("all");
+                setSubjectFilter("all");
+                setClassFilter("all");
+                toast.success(`Menampilkan ${highGrades.length} nilai tinggi (≥80)`);
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              <ClipboardList className="mr-2 h-4 w-4" />
+              Nilai Tinggi
+            </Button>
+            <Button 
+              onClick={() => {
+                const goodAttendance = attendance.filter(a => a.persen >= 80);
+                setSearchTerm("");
+                setStatusFilter("all");
+                setSubjectFilter("all");
+                setClassFilter("all");
+                toast.success(`Menampilkan ${goodAttendance.length} kehadiran baik (≥80%)`);
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              <CalendarCheck2 className="mr-2 h-4 w-4" />
+              Kehadiran Baik
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Detailed Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Ringkasan Detail Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Students Summary */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-blue-600 flex items-center gap-2">
+                <Users2 className="h-4 w-4" />
+                Data Siswa
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Total Siswa:</span>
+                  <span className="font-medium">{students.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Siswa Aktif:</span>
+                  <span className="font-medium text-green-600">{students.filter(s => s.statusSiswa === 'Aktif').length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Pindahan:</span>
+                  <span className="font-medium text-orange-600">{students.filter(s => s.statusSiswa === 'Pindahan').length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Meninggal:</span>
+                  <span className="font-medium text-red-600">{students.filter(s => s.statusSiswa === 'Meninggal').length}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Grades Summary */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-green-600 flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Data Nilai
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Total Nilai:</span>
+                  <span className="font-medium">{grades.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Nilai Tinggi (≥80):</span>
+                  <span className="font-medium text-green-600">{grades.filter(g => g.nilai >= 80).length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Nilai Sedang (60-79):</span>
+                  <span className="font-medium text-yellow-600">{grades.filter(g => g.nilai >= 60 && g.nilai < 80).length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Nilai Rendah (&lt;60):</span>
+                  <span className="font-medium text-red-600">{grades.filter(g => g.nilai < 60).length}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Attendance Summary */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-orange-600 flex items-center gap-2">
+                <CalendarCheck2 className="h-4 w-4" />
+                Data Kehadiran
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Total Record:</span>
+                  <span className="font-medium">{attendance.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Kehadiran Baik (≥80%):</span>
+                  <span className="font-medium text-green-600">{attendance.filter(a => a.persen >= 80).length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Kehadiran Sedang (60-79%):</span>
+                  <span className="font-medium text-yellow-600">{attendance.filter(a => a.persen >= 60 && a.persen < 80).length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Kehadiran Rendah (&lt;60%):</span>
+                  <span className="font-medium text-red-600">{attendance.filter(a => a.persen < 60).length}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Classes Summary */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-purple-600 flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Distribusi Kelas
+              </h4>
+              <div className="space-y-2 text-sm">
+                {classes.map(classItem => (
+                  <div key={classItem} className="flex justify-between">
+                    <span>Kelas {classItem}:</span>
+                    <span className="font-medium">{students.filter(s => s.diterimaDiKelas === classItem).length}</span>
+                  </div>
+                ))}
+                {classes.length === 0 && (
+                  <div className="text-muted-foreground text-center py-2">
+                    Belum ada data kelas
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Export Options */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Students Export */}
@@ -384,14 +569,22 @@ export default function ReportPage() {
               <p className="text-3xl font-bold text-blue-600">{filteredStudents.length}</p>
               <p className="text-sm text-muted-foreground">Siswa ditemukan</p>
             </div>
-            <Button 
-              onClick={handleExportStudents} 
-              disabled={isLoading || filteredStudents.length === 0}
-              className="w-full"
-            >
-              <FileSpreadsheet className="mr-2 h-4 w-4" />
-              Download Excel
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                onClick={handleExportStudents} 
+                disabled={isLoading || filteredStudents.length === 0}
+                className="w-full"
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Download Excel
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                {filteredStudents.length === students.length 
+                  ? "Semua data siswa" 
+                  : `${filteredStudents.length} siswa (terfilter)`
+                }
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -408,14 +601,22 @@ export default function ReportPage() {
               <p className="text-3xl font-bold text-green-600">{filteredGrades.length}</p>
               <p className="text-sm text-muted-foreground">Nilai ditemukan</p>
             </div>
-            <Button 
-              onClick={handleExportGrades} 
-              disabled={isLoading || filteredGrades.length === 0}
-              className="w-full"
-            >
-              <FileSpreadsheet className="mr-2 h-4 w-4" />
-              Download Excel
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                onClick={handleExportGrades} 
+                disabled={isLoading || filteredGrades.length === 0}
+                className="w-full"
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Download Excel
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                {filteredGrades.length === grades.length 
+                  ? "Semua data nilai" 
+                  : `${filteredGrades.length} nilai (terfilter)`
+                }
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -432,14 +633,22 @@ export default function ReportPage() {
               <p className="text-3xl font-bold text-orange-600">{filteredAttendance.length}</p>
               <p className="text-sm text-muted-foreground">Record ditemukan</p>
             </div>
-            <Button 
-              onClick={handleExportAttendance} 
-              disabled={isLoading || filteredAttendance.length === 0}
-              className="w-full"
-            >
-              <FileSpreadsheet className="mr-2 h-4 w-4" />
-              Download Excel
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                onClick={handleExportAttendance} 
+                disabled={isLoading || filteredAttendance.length === 0}
+                className="w-full"
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Download Excel
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                {filteredAttendance.length === attendance.length 
+                  ? "Semua data kehadiran" 
+                  : `${filteredAttendance.length} record (terfilter)`
+                }
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
