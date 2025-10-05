@@ -102,6 +102,19 @@ class DataManager<T> {
   private save(): void {
     try {
       localStorage.setItem(this.key, JSON.stringify(this.data));
+      // Notify other parts of the app that data has changed
+      try {
+        const type = this.key === "sips_students" 
+          ? "students" 
+          : this.key === "sips_grades" 
+          ? "grades" 
+          : this.key === "sips_attendance" 
+          ? "attendance" 
+          : "unknown";
+        window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type } }));
+      } catch {
+        // no-op if window is unavailable
+      }
     } catch (error) {
       console.error(`Error saving data for ${this.key}:`, error);
       throw new Error("Gagal menyimpan data");
