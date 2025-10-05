@@ -569,36 +569,59 @@ export default function ReportPage() {
         {/* Attendance Preview */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Preview Data Kehadiran</CardTitle>
+            <CardTitle className="text-lg flex items-center justify-between">
+              <span>Preview Data Kehadiran</span>
+              <span className="text-sm font-normal text-muted-foreground">
+                {filteredAttendance.length} dari {attendance.length} record
+              </span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="max-h-96 overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Mapel</TableHead>
-                    <TableHead>Hadir</TableHead>
-                    <TableHead>%</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAttendance.slice(0, 10).map(att => (
-                    <TableRow key={att.id}>
-                      <TableCell className="font-medium">{att.namaLengkap}</TableCell>
-                      <TableCell>{att.mapel}</TableCell>
-                      <TableCell>{att.hadir}/{att.hadir + att.alpa + att.sakit + att.izin}</TableCell>
-                      <TableCell>{att.persen.toFixed(1)}%</TableCell>
+            {filteredAttendance.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <CalendarCheck2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Tidak ada data kehadiran yang ditemukan</p>
+                <p className="text-sm">Coba ubah filter atau tambahkan data kehadiran baru</p>
+              </div>
+            ) : (
+              <div className="max-h-96 overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nama</TableHead>
+                      <TableHead>Mapel</TableHead>
+                      <TableHead>Hadir</TableHead>
+                      <TableHead>%</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {filteredAttendance.length > 10 && (
-                <p className="text-sm text-muted-foreground text-center mt-2">
-                  ... dan {filteredAttendance.length - 10} record lainnya
-                </p>
-              )}
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAttendance.slice(0, 10).map(att => (
+                      <TableRow key={att.id}>
+                        <TableCell className="font-medium">{att.namaLengkap}</TableCell>
+                        <TableCell>{att.mapel}</TableCell>
+                        <TableCell>{att.hadir}/{att.hadir + att.alpa + att.sakit + att.izin}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            att.persen >= 80 
+                              ? 'bg-green-100 text-green-800' 
+                              : att.persen >= 60 
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {att.persen.toFixed(1)}%
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredAttendance.length > 10 && (
+                  <p className="text-sm text-muted-foreground text-center mt-2">
+                    ... dan {filteredAttendance.length - 10} record lainnya
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
