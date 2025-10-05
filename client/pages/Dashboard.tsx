@@ -1973,7 +1973,7 @@ const gradeSchema = z
     tahunAjaran: z.string().min(1, "Tahun ajaran harus diisi"),
     semester: z.enum(semesterOptions),
     kompetensi: z
-      .array(z.string().min(1))
+      .array(z.string())
       .min(1, "Tambahkan minimal 1 kompetensi"),
     nilai: z.coerce.number().min(0).max(100),
     keterangan: z.string().optional(),
@@ -2006,10 +2006,37 @@ function InputNilaiPage() {
   });
   const [newTahunAjaran, setNewTahunAjaran] = React.useState("");
   const [showAddTahunAjaran, setShowAddTahunAjaran] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const students: any[] = React.useMemo(
     () => JSON.parse(localStorage.getItem("sips_students") || "[]"),
     [],
   );
+
+  // Add useEffect to refresh grades data when localStorage changes
+  React.useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const updatedGrades = JSON.parse(localStorage.getItem("sips_grades") || "[]");
+        setGrades(updatedGrades);
+      } catch (error) {
+        console.error("Error loading grades:", error);
+      }
+    };
+
+    // Listen for storage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events that might be dispatched when data changes
+    window.addEventListener('dataUpdated', handleStorageChange);
+
+    // Initial load
+    handleStorageChange();
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('dataUpdated', handleStorageChange);
+    };
+  }, []);
 
   const filtered = React.useMemo(() => {
     if (!query.trim()) return [] as any[];
@@ -2036,7 +2063,7 @@ function InputNilaiPage() {
       kelas: "VII",
       tahunAjaran: "2024/2025",
       semester: "Ganjil",
-      kompetensi: [],
+      kompetensi: [""], // Set default kompetensi dengan satu item kosong
       nilai: 0,
       keterangan: "",
     },
@@ -2058,7 +2085,7 @@ function InputNilaiPage() {
   };
 
   const mpValue = form.watch("mataPelajaran");
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<z.infer<typeof gradeSchema>, "kompetensi">({
     control: form.control,
     name: "kompetensi",
   });
@@ -2083,9 +2110,9 @@ function InputNilaiPage() {
       kelas: g.kelas || "VII",
       tahunAjaran: g.tahunAjaran || "2024/2025",
       semester: g.semester || "Ganjil",
-      kompetensi: Array.isArray(g.kompetensi)
+      kompetensi: Array.isArray(g.kompetensi) && g.kompetensi.length > 0
         ? g.kompetensi
-        : [],
+        : [""], // Ensure at least one empty kompetensi
       nilai: g.nilai,
       keterangan: g.keterangan || "",
     });
@@ -2115,34 +2142,71 @@ function InputNilaiPage() {
       kelas: "VII",
       tahunAjaran: "2024/2025",
       semester: "Ganjil",
-      kompetensi: [],
+      kompetensi: [""], // Set default kompetensi dengan satu item kosong
       nilai: 0,
       keterangan: "",
     });
   };
 
   const submitGrade = (v: z.infer<typeof gradeSchema>) => {
-    const curr: any[] = JSON.parse(localStorage.getItem("sips_grades") || "[]");
-    if (editingId) {
-      const next = curr.map((g) => (g.id === editingId ? { ...g, ...v } : g));
-      localStorage.setItem("sips_grades", JSON.stringify(next));
-      setGrades(next);
-      setEditingId(null);
-      toast.success("Nilai diperbarui");
-      // Dispatch event to notify other components
-      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
-    } else {
-      const payload = {
-        id: crypto.randomUUID?.() || String(Date.now()),
-        ...v,
-        tanggal: new Date().toISOString(),
-      };
-      const next = [payload, ...curr];
-      localStorage.setItem("sips_grades", JSON.stringify(next));
-      setGrades(next);
-      toast.success("Nilai tersimpan");
-      // Dispatch event to notify other components
-      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
+    setIsSubmitting(true);
+    
+    try {
+      // Filter out empty kompetensi before saving
+      const filteredKompetensi = v.kompetensi.filter(k => k.trim() !== "");
+      
+      if (filteredKompetensi.length === 0) {
+        toast.error("Minimal harus ada 1 kompetensi yang diisi");
+        return;
+      }
+
+      const curr: any[] = JSON.parse(localStorage.getItem("sips_grades") || "[]");
+      if (editingId) {
+        const next = curr.map((g) => (g.id === editingId ? { ...g, ...v, kompetensi: filteredKompetensi } : g));
+        localStorage.setItem("sips_grades", JSON.stringify(next));
+        setGrades(next);
+        setEditingId(null);
+        toast.success("Nilai diperbarui");
+        // Dispatch event to notify other components
+        window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
+      } else {
+        const payload = {
+          id: crypto.randomUUID?.() || String(Date.now()),
+          ...v,
+          kompetensi: filteredKompetensi,
+          tanggal: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        const next = [payload, ...curr];
+        localStorage.setItem("sips_grades", JSON.stringify(next));
+        setGrades(next);
+        toast.success("Nilai tersimpan");
+        // Dispatch event to notify other components
+        window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
+      }
+      
+      // Reset form after successful submission
+      form.reset({
+        studentId: selected?.id || "",
+        namaLengkap: selected?.namaLengkap || "",
+        nik: selected?.nik || "",
+        nisn: selected?.nisn || "",
+        nis: selected?.nis || "",
+        mataPelajaran: "Bahasa Indonesia",
+        mataPelajaranLain: "",
+        kelas: "VII",
+        tahunAjaran: "2024/2025",
+        semester: "Ganjil",
+        kompetensi: [""],
+        nilai: 0,
+        keterangan: "",
+      });
+    } catch (error) {
+      console.error("Error saving grade:", error);
+      toast.error("Gagal menyimpan nilai");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -2389,7 +2453,17 @@ function InputNilaiPage() {
               </div>
 
               <div className="space-y-2">
-                <FormLabel>Kompetensi Diharapkan</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Kompetensi Diharapkan</FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => append("")}
+                  >
+                    + Tambah Kompetensi
+                  </Button>
+                </div>
                 {fields.map((f: any, idx: number) => (
                   <div key={f.id} className="flex gap-2">
                     <Input
@@ -2406,13 +2480,11 @@ function InputNilaiPage() {
                     </Button>
                   </div>
                 ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => append("")}
-                >
-                  Tambah Kompetensi
-                </Button>
+                {fields.length === 0 && (
+                  <div className="text-sm text-muted-foreground text-center py-2">
+                    Belum ada kompetensi. Klik "Tambah Kompetensi" untuk menambah.
+                  </div>
+                )}
               </div>
 
               <FormField
@@ -2465,8 +2537,8 @@ function InputNilaiPage() {
                     Batal
                   </Button>
                 )}
-                <Button type="submit">
-                  {editingId ? "Perbarui Nilai" : "Simpan Nilai"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Menyimpan..." : editingId ? "Perbarui Nilai" : "Simpan Nilai"}
                 </Button>
               </div>
             </form>
@@ -2474,7 +2546,15 @@ function InputNilaiPage() {
         )}
 
         <div className="pt-6 mt-4 border-t">
-          <h4 className="text-sm font-semibold mb-3">Data Nilai Tersimpan</h4>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-semibold">Data Nilai Tersimpan</h4>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Total: {grades.length} nilai</span>
+              {grades.length > 0 && (
+                <span>• Rata-rata: {(grades.reduce((sum, g) => sum + Number(g.nilai), 0) / grades.length).toFixed(2)}</span>
+              )}
+            </div>
+          </div>
           <div className="overflow-x-auto -mx-2 md:mx-0">
             <div className="min-w-max md:min-w-0">
               <Table className="hidden md:table">
@@ -2516,7 +2596,17 @@ function InputNilaiPage() {
                         <TableCell>{g.tahunAjaran || "2024/2025"}</TableCell>
                         <TableCell>{g.semester || "Ganjil"}</TableCell>
                         <TableCell>{mp}</TableCell>
-                        <TableCell>{Number(g.nilai).toFixed(2)}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            Number(g.nilai) >= 80 
+                              ? 'bg-green-100 text-green-800' 
+                              : Number(g.nilai) >= 60 
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {Number(g.nilai).toFixed(2)}
+                          </span>
+                        </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button
@@ -2565,7 +2655,15 @@ function InputNilaiPage() {
                         </div>
                         <div className="text-right text-sm">
                           <div className="font-semibold">
-                            {Number(g.nilai).toFixed(2)}
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              Number(g.nilai) >= 80 
+                                ? 'bg-green-100 text-green-800' 
+                                : Number(g.nilai) >= 60 
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {Number(g.nilai).toFixed(2)}
+                            </span>
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {mp}
