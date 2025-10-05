@@ -196,6 +196,8 @@ export function DataManager() {
     try {
       studentManager.clear();
       toast.success("Data siswa telah dihapus");
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'students' } }));
       setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       toast.error("Gagal menghapus data siswa");
@@ -206,6 +208,8 @@ export function DataManager() {
     try {
       gradeManager.clear();
       toast.success("Data nilai telah dihapus");
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
       setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       toast.error("Gagal menghapus data nilai");
@@ -216,6 +220,8 @@ export function DataManager() {
     try {
       attendanceManager.clear();
       toast.success("Data kehadiran telah dihapus");
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'attendance' } }));
       setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       toast.error("Gagal menghapus data kehadiran");
@@ -234,6 +240,8 @@ export function DataManager() {
         toast.success("Data berhasil diimpor");
         setImportData("");
         setIsImportOpen(false);
+        // Dispatch event to notify other components
+        window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'all' } }));
         // Refresh the page to update all components
         setTimeout(() => window.location.reload(), 1000);
       } else {
@@ -269,6 +277,8 @@ export function DataManager() {
           setIsLoading(true);
           if (importAllData(content)) {
             toast.success("File berhasil diimpor dan data telah dimuat");
+            // Dispatch event to notify other components
+            window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'all' } }));
             setTimeout(() => window.location.reload(), 1000);
           } else {
             toast.error("Format data tidak valid");
@@ -304,6 +314,8 @@ export function DataManager() {
       gradeManager.clear();
       attendanceManager.clear();
       toast.success("Semua data telah dihapus");
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'all' } }));
       setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       toast.error("Gagal menghapus data");

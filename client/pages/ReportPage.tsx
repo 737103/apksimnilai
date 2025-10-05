@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,8 @@ import {
   CalendarCheck2,
   Search,
   Filter,
-  BarChart3
+  BarChart3,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -46,12 +47,43 @@ export default function ReportPage() {
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [classFilter, setClassFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  // Get all data
-  const students = useMemo(() => studentManager.getAll(), []);
-  const grades = useMemo(() => gradeManager.getAll(), []);
-  const attendance = useMemo(() => attendanceManager.getAll(), []);
-  const stats = useMemo(() => getStatistics(), []);
+  // Get all data with refresh capability
+  const students = useMemo(() => studentManager.getAll(), [refreshKey]);
+  const grades = useMemo(() => gradeManager.getAll(), [refreshKey]);
+  const attendance = useMemo(() => attendanceManager.getAll(), [refreshKey]);
+  const stats = useMemo(() => getStatistics(), [refreshKey]);
+
+  // Auto-refresh data when component mounts or when localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setRefreshKey(prev => prev + 1);
+      setLastUpdated(new Date());
+    };
+
+    // Listen for storage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events that might be dispatched when data changes
+    window.addEventListener('dataUpdated', handleStorageChange);
+
+    // Initial refresh
+    handleStorageChange();
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('dataUpdated', handleStorageChange);
+    };
+  }, []);
+
+  // Manual refresh function
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+    setLastUpdated(new Date());
+    toast.success("Data telah diperbarui");
+  };
 
   // Get unique subjects from grades
   const subjects = useMemo(() => {
@@ -61,7 +93,7 @@ export default function ReportPage() {
       if (subject) subjectSet.add(subject);
     });
     return Array.from(subjectSet);
-  }, [grades]);
+  }, [grades, refreshKey]);
 
   // Get unique classes from students
   const classes = useMemo(() => {
@@ -70,7 +102,7 @@ export default function ReportPage() {
       if (student.diterimaDiKelas) classSet.add(student.diterimaDiKelas);
     });
     return Array.from(classSet).sort();
-  }, [students]);
+  }, [students, refreshKey]);
 
   // Filter students
   const filteredStudents = useMemo(() => {
@@ -89,7 +121,7 @@ export default function ReportPage() {
       
       return matchesSearch && matchesStatus && matchesClass;
     });
-  }, [students, searchTerm, statusFilter, classFilter]);
+  }, [students, searchTerm, statusFilter, classFilter, refreshKey]);
 
   // Filter grades
   const filteredGrades = useMemo(() => {
@@ -105,7 +137,7 @@ export default function ReportPage() {
       
       return matchesSearch && matchesSubject;
     });
-  }, [grades, searchTerm, subjectFilter]);
+  }, [grades, searchTerm, subjectFilter, refreshKey]);
 
   // Filter attendance
   const filteredAttendance = useMemo(() => {
@@ -120,7 +152,7 @@ export default function ReportPage() {
       
       return matchesSearch && matchesSubject;
     });
-  }, [attendance, searchTerm, subjectFilter]);
+  }, [attendance, searchTerm, subjectFilter, refreshKey]);
 
   const handleExportStudents = async () => {
     setIsLoading(true);
@@ -179,15 +211,28 @@ export default function ReportPage() {
           <p className="text-muted-foreground">
             Download data siswa, nilai, dan kehadiran dalam format Excel
           </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Terakhir diperbarui: {lastUpdated.toLocaleString('id-ID')}
+          </p>
         </div>
-        <Button 
-          onClick={handleExportAll} 
-          disabled={isLoading}
-          className="w-full md:w-auto"
-        >
-          <Download className="mr-2 h-4 w-4" />
-          {isLoading ? "Mengekspor..." : "Download Semua Data"}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline"
+            className="w-full md:w-auto"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh Data
+          </Button>
+          <Button 
+            onClick={handleExportAll} 
+            disabled={isLoading}
+            className="w-full md:w-auto"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            {isLoading ? "Mengekspor..." : "Download Semua Data"}
+          </Button>
+        </div>
       </div>
 
       {/* Statistics */}
@@ -404,76 +449,120 @@ export default function ReportPage() {
         {/* Students Preview */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Preview Data Siswa</CardTitle>
+            <CardTitle className="text-lg flex items-center justify-between">
+              <span>Preview Data Siswa</span>
+              <span className="text-sm font-normal text-muted-foreground">
+                {filteredStudents.length} dari {students.length} siswa
+              </span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="max-h-96 overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>NIK</TableHead>
-                    <TableHead>Kelas</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Telepon</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredStudents.slice(0, 10).map(student => (
-                    <TableRow key={student.id}>
-                      <TableCell className="font-medium">{student.namaLengkap}</TableCell>
-                      <TableCell>{student.nik}</TableCell>
-                      <TableCell>{student.diterimaDiKelas || '-'}</TableCell>
-                      <TableCell>{student.statusSiswa}</TableCell>
-                      <TableCell>{student.noTeleponSiswa || '-'}</TableCell>
+            {filteredStudents.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Tidak ada data siswa yang ditemukan</p>
+                <p className="text-sm">Coba ubah filter atau tambahkan data siswa baru</p>
+              </div>
+            ) : (
+              <div className="max-h-96 overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nama</TableHead>
+                      <TableHead>NIK</TableHead>
+                      <TableHead>Kelas</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Telepon</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {filteredStudents.length > 10 && (
-                <p className="text-sm text-muted-foreground text-center mt-2">
-                  ... dan {filteredStudents.length - 10} siswa lainnya
-                </p>
-              )}
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStudents.slice(0, 10).map(student => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-medium">{student.namaLengkap}</TableCell>
+                        <TableCell>{student.nik}</TableCell>
+                        <TableCell>{student.diterimaDiKelas || '-'}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            student.statusSiswa === 'Aktif' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {student.statusSiswa}
+                          </span>
+                        </TableCell>
+                        <TableCell>{student.noTeleponSiswa || '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredStudents.length > 10 && (
+                  <p className="text-sm text-muted-foreground text-center mt-2">
+                    ... dan {filteredStudents.length - 10} siswa lainnya
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Grades Preview */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Preview Data Nilai</CardTitle>
+            <CardTitle className="text-lg flex items-center justify-between">
+              <span>Preview Data Nilai</span>
+              <span className="text-sm font-normal text-muted-foreground">
+                {filteredGrades.length} dari {grades.length} nilai
+              </span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="max-h-96 overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Kelas</TableHead>
-                    <TableHead>Mapel</TableHead>
-                    <TableHead>Nilai</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredGrades.slice(0, 10).map(grade => (
-                    <TableRow key={grade.id}>
-                      <TableCell className="font-medium">{grade.namaLengkap}</TableCell>
-                      <TableCell>{grade.kelas || '-'}</TableCell>
-                      <TableCell>
-                        {grade.mataPelajaran === 'Lainnya' ? grade.mataPelajaranLain : grade.mataPelajaran}
-                      </TableCell>
-                      <TableCell>{grade.nilai}</TableCell>
+            {filteredGrades.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Tidak ada data nilai yang ditemukan</p>
+                <p className="text-sm">Coba ubah filter atau tambahkan data nilai baru</p>
+              </div>
+            ) : (
+              <div className="max-h-96 overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nama</TableHead>
+                      <TableHead>Kelas</TableHead>
+                      <TableHead>Mapel</TableHead>
+                      <TableHead>Nilai</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {filteredGrades.length > 10 && (
-                <p className="text-sm text-muted-foreground text-center mt-2">
-                  ... dan {filteredGrades.length - 10} nilai lainnya
-                </p>
-              )}
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredGrades.slice(0, 10).map(grade => (
+                      <TableRow key={grade.id}>
+                        <TableCell className="font-medium">{grade.namaLengkap}</TableCell>
+                        <TableCell>{grade.kelas || '-'}</TableCell>
+                        <TableCell>
+                          {grade.mataPelajaran === 'Lainnya' ? grade.mataPelajaranLain : grade.mataPelajaran}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            grade.nilai >= 80 
+                              ? 'bg-green-100 text-green-800' 
+                              : grade.nilai >= 60 
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {grade.nilai}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredGrades.length > 10 && (
+                  <p className="text-sm text-muted-foreground text-center mt-2">
+                    ... dan {filteredGrades.length - 10} nilai lainnya
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 

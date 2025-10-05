@@ -857,6 +857,8 @@ function DataSiswaForm() {
       setStudents(next);
       setEditingId(null);
       toast.success("Data siswa diperbarui");
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'students' } }));
     } else {
       const record = {
         id: crypto.randomUUID?.() || String(Date.now()),
@@ -897,6 +899,8 @@ function DataSiswaForm() {
       localStorage.setItem("sips_students", JSON.stringify(next));
       setStudents(next);
       toast.success("Data siswa tersimpan");
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'students' } }));
     }
 
     setPreview(null);
@@ -982,6 +986,8 @@ function DataSiswaForm() {
     localStorage.setItem("sips_students", JSON.stringify(next));
     setStudents(next);
     toast.success("Data siswa dihapus");
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'students' } }));
   }
 
   async function handlePrintBiodata(student: any) {
@@ -2092,6 +2098,8 @@ function InputNilaiPage() {
     localStorage.setItem("sips_grades", JSON.stringify(next));
     setGrades(next);
     toast.success("Nilai dihapus");
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
   }
 
   const pickStudent = (s: any) => {
@@ -2121,6 +2129,8 @@ function InputNilaiPage() {
       setGrades(next);
       setEditingId(null);
       toast.success("Nilai diperbarui");
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
     } else {
       const payload = {
         id: crypto.randomUUID?.() || String(Date.now()),
@@ -2131,6 +2141,8 @@ function InputNilaiPage() {
       localStorage.setItem("sips_grades", JSON.stringify(next));
       setGrades(next);
       toast.success("Nilai tersimpan");
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
     }
   };
 
@@ -2720,6 +2732,8 @@ function AttendancePage() {
     const next = [rec, ...filtered];
     localStorage.setItem("sips_attendance", JSON.stringify(next));
     setAtt(next);
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'attendance' } }));
   }
   function editRec(r: any) {
     setMapel(r.mapel);
@@ -2739,6 +2753,8 @@ function AttendancePage() {
     const next = att.filter((x) => x.id !== id);
     localStorage.setItem("sips_attendance", JSON.stringify(next));
     setAtt(next);
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'attendance' } }));
   }
   const filteredAtt = React.useMemo(
     () => att.filter((x) => !mapel || x.mapel === mapel),
