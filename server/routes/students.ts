@@ -62,6 +62,42 @@ export const handleUpsertStudent: RequestHandler = async (req, res) => {
          updated_at timestamptz not null default now()
        );`
     );
+    await query(
+      `alter table students
+         add column if not exists nama_lengkap text,
+         add column if not exists nik text,
+         add column if not exists nisn text,
+         add column if not exists nis text,
+         add column if not exists tempat_lahir text,
+         add column if not exists tanggal_lahir date,
+         add column if not exists jenis_kelamin jenis_kelamin,
+         add column if not exists agama text,
+         add column if not exists alamat_domisili text,
+         add column if not exists no_telepon_siswa text,
+         add column if not exists nama_ayah text,
+         add column if not exists nama_ibu text,
+         add column if not exists pekerjaan_ayah text,
+         add column if not exists pekerjaan_ayah_lain text,
+         add column if not exists pekerjaan_ibu text,
+         add column if not exists pekerjaan_ibu_lain text,
+         add column if not exists anak_ke int,
+         add column if not exists jumlah_saudara int,
+         add column if not exists diterima_di_kelas text,
+         add column if not exists diterima_pada_tanggal date,
+         add column if not exists alamat_ortu text,
+         add column if not exists no_telepon_ortu text,
+         add column if not exists nama_wali text,
+         add column if not exists alamat_wali text,
+         add column if not exists no_telepon_wali text,
+         add column if not exists pekerjaan_wali text,
+         add column if not exists pekerjaan_wali_lain text,
+         add column if not exists asal_sekolah text,
+         add column if not exists status_siswa text,
+         add column if not exists keterangan text[],
+         add column if not exists foto_url text,
+         add column if not exists created_at timestamptz not null default now(),
+         add column if not exists updated_at timestamptz not null default now();`
+    );
   } catch (e) {
     res.status(500).json({ success: false, error: `Init schema gagal: ${(e as Error).message}` });
     return;
