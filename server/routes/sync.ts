@@ -25,7 +25,7 @@ async function upsertStudent(s: SyncPayloadStudent): Promise<string> {
            nis = coalesce($5, nis),
            tempat_lahir = coalesce($6, tempat_lahir),
            tanggal_lahir = coalesce($7::date, tanggal_lahir),
-           jenis_kelamin = coalesce($8::text, jenis_kelamin),
+           jenis_kelamin = coalesce($8::jenis_kelamin, jenis_kelamin),
            agama = coalesce($9, agama),
            alamat_domisili = coalesce($10, alamat_domisili),
            no_telepon_siswa = coalesce($11, no_telepon_siswa),
@@ -98,7 +98,7 @@ async function upsertStudent(s: SyncPayloadStudent): Promise<string> {
         alamat_ortu, no_telepon_ortu, nama_wali, alamat_wali, no_telepon_wali, pekerjaan_wali, pekerjaan_wali_lain,
         asal_sekolah, status_siswa, keterangan, foto_url
       ) values (
-        $1,$2,$3,$4,$5,$6::date,$7::text,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::date,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
+        $1,$2,$3,$4,$5,$6::date,$7::jenis_kelamin,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::date,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
       ) returning id
     `;
     const ins = await query<{ id: string }>(insertSql, [

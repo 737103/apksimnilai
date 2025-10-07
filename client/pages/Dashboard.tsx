@@ -798,6 +798,28 @@ function DataSiswaForm() {
   const [preview, setPreview] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Sync helpers to Neon via API
+  async function syncStudentUpsert(student: any) {
+    try {
+      await fetch('/api/students/upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(student),
+      });
+    } catch {}
+  }
+
+  async function syncStudentDelete(student: any) {
+    if (!student) return;
+    try {
+      await fetch('/api/students/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nisn: student.nisn, nis: student.nis, nik: student.nik }),
+      });
+    } catch {}
+  }
+
 
   const onSubmit = async (values: z.infer<typeof schema>) => {
     const curr: any[] = JSON.parse(
@@ -880,6 +902,8 @@ function DataSiswaForm() {
       const next = curr.map((s) => (s.id === editingId ? updated : s));
       localStorage.setItem("sips_students", JSON.stringify(next));
       setStudents(next);
+      // sync to server
+      void syncStudentUpsert(updated);
       setEditingId(null);
       toast.success("Data siswa diperbarui");
       // Dispatch event to notify other components
@@ -1007,9 +1031,12 @@ function DataSiswaForm() {
 
   function handleDelete(id: string) {
     if (!confirm("Hapus data siswa ini?")) return;
+    const toDelete = students.find((x) => x.id === id);
     const next = students.filter((x) => x.id !== id);
     localStorage.setItem("sips_students", JSON.stringify(next));
     setStudents(next);
+    // sync delete to server
+    void syncStudentDelete(toDelete);
     toast.success("Data siswa dihapus");
     // Dispatch event to notify other components
     window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'students' } }));

@@ -4,6 +4,7 @@ import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleLogin } from "./routes/login";
 import { handleSync } from "./routes/sync";
+import { handleUpsertStudent, handleDeleteStudent } from "./routes/students";
 
 export function createServer() {
   const app = express();
@@ -22,6 +23,8 @@ export function createServer() {
   app.get("/api/demo", handleDemo);
   app.post("/api/login", handleLogin);
   app.post("/api/sync", handleSync);
+  app.post("/api/students/upsert", handleUpsertStudent);
+  app.post("/api/students/delete", handleDeleteStudent);
 
   return app;
 }
