@@ -2225,11 +2225,11 @@ function InputNilaiPage() {
         try {
           const toSync = next.find((g) => g.id === editingId);
           if (toSync) {
-            await fetch('/api/grades/upsert', {
+            void fetch('/api/grades/upsert', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(toSync),
-            });
+            }).catch(() => {});
           }
         } catch {}
         toast.success("Nilai diperbarui");
@@ -2249,11 +2249,11 @@ function InputNilaiPage() {
         setGrades(next);
         // sync create
         try {
-          await fetch('/api/grades/upsert', {
+          void fetch('/api/grades/upsert', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
-          });
+          }).catch(() => {});
         } catch {}
         toast.success("Nilai tersimpan");
         // Dispatch event to notify other components
