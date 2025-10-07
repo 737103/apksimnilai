@@ -5,6 +5,13 @@ function pickKey(s: any): string | null {
   return s?.nisn || s?.nis || s?.nik || null;
 }
 
+function toNull<T>(v: T): T | null {
+  // Normalizes empty strings/undefined to null for SQL casts
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  return v === "" || v === undefined ? null : v;
+}
+
 export const handleUpsertStudent: RequestHandler = async (req, res) => {
   const s = req.body as any;
   if (!s || !s.namaLengkap) {
@@ -12,6 +19,7 @@ export const handleUpsertStudent: RequestHandler = async (req, res) => {
     return;
   }
   const key = pickKey(s);
+  const jk = s?.jenisKelamin === "Laki-laki" || s?.jenisKelamin === "Perempuan" ? s.jenisKelamin : null;
   try {
     if (key) {
       const found = await query<{ id: string }>(
@@ -56,37 +64,37 @@ export const handleUpsertStudent: RequestHandler = async (req, res) => {
            where id = $1`,
           [
             id,
-            s.namaLengkap,
-            s.nik ?? null,
-            s.nisn ?? null,
-            s.nis ?? null,
-            s.tempatLahir ?? null,
-            s.tanggalLahir ?? null,
-            s.jenisKelamin ?? null,
-            s.agama ?? null,
-            s.alamatDomisili ?? null,
-            s.noTeleponSiswa ?? null,
-            s.namaAyah ?? null,
-            s.namaIbu ?? null,
-            s.pekerjaanAyah ?? null,
-            s.pekerjaanAyahLain ?? null,
-            s.pekerjaanIbu ?? null,
-            s.pekerjaanIbuLain ?? null,
-            s.anakKe ?? null,
-            s.jumlahSaudara ?? null,
-            s.diterimaDiKelas ?? null,
-            s.diterimaPadaTanggal ?? null,
-            s.alamatOrtu ?? null,
-            s.noTeleponOrtu ?? null,
-            s.namaWali ?? null,
-            s.alamatWali ?? null,
-            s.noTeleponWali ?? null,
-            s.pekerjaanWali ?? null,
-            s.pekerjaanWaliLain ?? null,
-            s.asalSekolah ?? null,
-            s.statusSiswa ?? null,
-            s.keterangan ?? null,
-            s.fotoUrl ?? null,
+            toNull(s.namaLengkap),
+            toNull(s.nik),
+            toNull(s.nisn),
+            toNull(s.nis),
+            toNull(s.tempatLahir),
+            toNull(s.tanggalLahir),
+            toNull(jk),
+            toNull(s.agama),
+            toNull(s.alamatDomisili),
+            toNull(s.noTeleponSiswa),
+            toNull(s.namaAyah),
+            toNull(s.namaIbu),
+            toNull(s.pekerjaanAyah),
+            toNull(s.pekerjaanAyahLain),
+            toNull(s.pekerjaanIbu),
+            toNull(s.pekerjaanIbuLain),
+            toNull(s.anakKe),
+            toNull(s.jumlahSaudara),
+            toNull(s.diterimaDiKelas),
+            toNull(s.diterimaPadaTanggal),
+            toNull(s.alamatOrtu),
+            toNull(s.noTeleponOrtu),
+            toNull(s.namaWali),
+            toNull(s.alamatWali),
+            toNull(s.noTeleponWali),
+            toNull(s.pekerjaanWali),
+            toNull(s.pekerjaanWaliLain),
+            toNull(s.asalSekolah),
+            toNull(s.statusSiswa),
+            Array.isArray(s.keterangan) ? s.keterangan : null,
+            toNull(s.fotoUrl),
           ]
         );
         res.json({ success: true, id });
@@ -105,37 +113,37 @@ export const handleUpsertStudent: RequestHandler = async (req, res) => {
          $1,$2,$3,$4,$5,$6::date,$7::jenis_kelamin,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::date,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
        ) returning id`,
       [
-        s.namaLengkap,
-        s.nik ?? null,
-        s.nisn ?? null,
-        s.nis ?? null,
-        s.tempatLahir ?? null,
-        s.tanggalLahir ?? null,
-        s.jenisKelamin ?? null,
-        s.agama ?? null,
-        s.alamatDomisili ?? null,
-        s.noTeleponSiswa ?? null,
-        s.namaAyah ?? null,
-        s.namaIbu ?? null,
-        s.pekerjaanAyah ?? null,
-        s.pekerjaanAyahLain ?? null,
-        s.pekerjaanIbu ?? null,
-        s.pekerjaanIbuLain ?? null,
-        s.anakKe ?? null,
-        s.jumlahSaudara ?? null,
-        s.diterimaDiKelas ?? null,
-        s.diterimaPadaTanggal ?? null,
-        s.alamatOrtu ?? null,
-        s.noTeleponOrtu ?? null,
-        s.namaWali ?? null,
-        s.alamatWali ?? null,
-        s.noTeleponWali ?? null,
-        s.pekerjaanWali ?? null,
-        s.pekerjaanWaliLain ?? null,
-        s.asalSekolah ?? null,
-        s.statusSiswa ?? null,
-        s.keterangan ?? null,
-        s.fotoUrl ?? null,
+        toNull(s.namaLengkap),
+        toNull(s.nik),
+        toNull(s.nisn),
+        toNull(s.nis),
+        toNull(s.tempatLahir),
+        toNull(s.tanggalLahir),
+        toNull(jk),
+        toNull(s.agama),
+        toNull(s.alamatDomisili),
+        toNull(s.noTeleponSiswa),
+        toNull(s.namaAyah),
+        toNull(s.namaIbu),
+        toNull(s.pekerjaanAyah),
+        toNull(s.pekerjaanAyahLain),
+        toNull(s.pekerjaanIbu),
+        toNull(s.pekerjaanIbuLain),
+        toNull(s.anakKe),
+        toNull(s.jumlahSaudara),
+        toNull(s.diterimaDiKelas),
+        toNull(s.diterimaPadaTanggal),
+        toNull(s.alamatOrtu),
+        toNull(s.noTeleponOrtu),
+        toNull(s.namaWali),
+        toNull(s.alamatWali),
+        toNull(s.noTeleponWali),
+        toNull(s.pekerjaanWali),
+        toNull(s.pekerjaanWaliLain),
+        toNull(s.asalSekolah),
+        toNull(s.statusSiswa),
+        Array.isArray(s.keterangan) ? s.keterangan : null,
+        toNull(s.fotoUrl),
       ]
     );
     res.json({ success: true, id: ins.rows[0].id });
