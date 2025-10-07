@@ -13,6 +13,60 @@ function toNull<T>(v: T): T | null {
 }
 
 export const handleUpsertStudent: RequestHandler = async (req, res) => {
+  // Ensure schema exists (idempotent)
+  try {
+    await query(`create extension if not exists pgcrypto;`);
+    await query(
+      `do $$
+       begin
+         if not exists (select 1 from pg_type where typname = 'jenis_kelamin') then
+           create type jenis_kelamin as enum ('Laki-laki','Perempuan');
+         end if;
+       end$$;`
+    );
+    await query(
+      `create table if not exists students (
+         id uuid primary key default gen_random_uuid(),
+         nama_lengkap text not null,
+         nik text,
+         nisn text,
+         nis text,
+         tempat_lahir text,
+         tanggal_lahir date,
+         jenis_kelamin jenis_kelamin,
+         agama text,
+         alamat_domisili text,
+         no_telepon_siswa text,
+         nama_ayah text,
+         nama_ibu text,
+         pekerjaan_ayah text,
+         pekerjaan_ayah_lain text,
+         pekerjaan_ibu text,
+         pekerjaan_ibu_lain text,
+         anak_ke int,
+         jumlah_saudara int,
+         diterima_di_kelas text,
+         diterima_pada_tanggal date,
+         alamat_ortu text,
+         no_telepon_ortu text,
+         nama_wali text,
+         alamat_wali text,
+         no_telepon_wali text,
+         pekerjaan_wali text,
+         pekerjaan_wali_lain text,
+         asal_sekolah text,
+         status_siswa text,
+         keterangan text[],
+         foto_url text,
+         created_at timestamptz not null default now(),
+         updated_at timestamptz not null default now()
+       );`
+    );
+  } catch (e) {
+    res.status(500).json({ success: false, error: `Init schema gagal: ${(e as Error).message}` });
+    return;
+  }
+
   const s = req.body as any;
   if (!s || !s.namaLengkap) {
     res.status(400).json({ success: false, error: "Payload siswa tidak valid" });
@@ -20,6 +74,9 @@ export const handleUpsertStudent: RequestHandler = async (req, res) => {
   }
   const key = pickKey(s);
   const jk = s?.jenisKelamin === "Laki-laki" || s?.jenisKelamin === "Perempuan" ? s.jenisKelamin : null;
+  // Prevent oversized base64 images from being stored; keep only modest-sized photos
+  const safeFotoUrl: string | null =
+    typeof s?.fotoUrl === "string" && s.fotoUrl.length > 0 && s.fotoUrl.length <= 200_000 ? s.fotoUrl : null;
   try {
     if (key) {
       const found = await query<{ id: string }>(
@@ -94,7 +151,7 @@ export const handleUpsertStudent: RequestHandler = async (req, res) => {
             toNull(s.asalSekolah),
             toNull(s.statusSiswa),
             Array.isArray(s.keterangan) ? s.keterangan : null,
-            toNull(s.fotoUrl),
+            safeFotoUrl,
           ]
         );
         res.json({ success: true, id });
@@ -143,7 +200,7 @@ export const handleUpsertStudent: RequestHandler = async (req, res) => {
         toNull(s.asalSekolah),
         toNull(s.statusSiswa),
         Array.isArray(s.keterangan) ? s.keterangan : null,
-        toNull(s.fotoUrl),
+        safeFotoUrl,
       ]
     );
     res.json({ success: true, id: ins.rows[0].id });
