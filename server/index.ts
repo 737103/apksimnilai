@@ -5,6 +5,7 @@ import { handleDemo } from "./routes/demo";
 import { handleLogin } from "./routes/login";
 import { handleSync } from "./routes/sync";
 import { handleUpsertStudent, handleDeleteStudent } from "./routes/students";
+import { handleUpsertGrade } from "./routes/grades";
 
 export function createServer() {
   const app = express();
@@ -25,6 +26,7 @@ export function createServer() {
   app.post("/api/sync", handleSync);
   app.post("/api/students/upsert", handleUpsertStudent);
   app.post("/api/students/delete", handleDeleteStudent);
+  app.post("/api/grades/upsert", handleUpsertGrade);
 
   return app;
 }

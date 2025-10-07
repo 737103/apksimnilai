@@ -2178,6 +2178,7 @@ function InputNilaiPage() {
     const next = grades.filter((x) => x.id !== id);
     localStorage.setItem("sips_grades", JSON.stringify(next));
     setGrades(next);
+    // sync delete not implemented yet for grades; batch sync can handle removals if needed
     toast.success("Nilai dihapus");
     // Dispatch event to notify other components
     window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
@@ -2220,6 +2221,17 @@ function InputNilaiPage() {
         localStorage.setItem("sips_grades", JSON.stringify(next));
         setGrades(next);
         setEditingId(null);
+        // sync update
+        try {
+          const toSync = next.find((g) => g.id === editingId);
+          if (toSync) {
+            await fetch('/api/grades/upsert', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(toSync),
+            });
+          }
+        } catch {}
         toast.success("Nilai diperbarui");
         // Dispatch event to notify other components
         window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
@@ -2235,6 +2247,14 @@ function InputNilaiPage() {
         const next = [payload, ...curr];
         localStorage.setItem("sips_grades", JSON.stringify(next));
         setGrades(next);
+        // sync create
+        try {
+          await fetch('/api/grades/upsert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+        } catch {}
         toast.success("Nilai tersimpan");
         // Dispatch event to notify other components
         window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
