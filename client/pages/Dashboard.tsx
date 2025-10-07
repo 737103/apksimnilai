@@ -2904,6 +2904,14 @@ function AttendancePage() {
     const next = [rec, ...filtered];
     localStorage.setItem("sips_attendance", JSON.stringify(next));
     setAtt(next);
+    // sync create/update
+    try {
+      void fetch('/api/attendance/upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rec),
+      }).catch(() => {});
+    } catch {}
     // Dispatch event to notify other components
     window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'attendance' } }));
   }
