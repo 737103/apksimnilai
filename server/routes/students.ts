@@ -195,18 +195,48 @@ export const handleUpsertStudent: RequestHandler = async (req, res) => {
       }
     }
 
-    const ins = await query<{ id: string }>(
-      `insert into students (
-         nama_lengkap, nik, nisn, nis, tempat_lahir, tanggal_lahir, jenis_kelamin, agama,
-         alamat_domisili, no_telepon_siswa, nama_ayah, nama_ibu, pekerjaan_ayah, pekerjaan_ayah_lain,
-         pekerjaan_ibu, pekerjaan_ibu_lain, anak_ke, jumlah_saudara, diterima_di_kelas, diterima_pada_tanggal,
-         alamat_ortu, no_telepon_ortu, nama_wali, alamat_wali, no_telepon_wali, pekerjaan_wali, pekerjaan_wali_lain,
-         asal_sekolah, status_siswa, keterangan, foto_url
-       ) values (
-         $1,$2,$3,$4,$5,$6::date,$7::jenis_kelamin,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::date,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
-       ) returning id`,
+    // Insert minimal row first, then update all fields. This avoids column count mismatches.
+    const inserted = await query<{ id: string }>(
+      `insert into students (nama_lengkap) values ($1) returning id`,
+      [toNull(s.namaLengkap)]
+    );
+    const newId = inserted.rows[0].id;
+
+    await query(
+      `update students set
+         nik = coalesce($2, nik),
+         nisn = coalesce($3, nisn),
+         nis = coalesce($4, nis),
+         tempat_lahir = coalesce($5, tempat_lahir),
+         tanggal_lahir = coalesce($6::date, tanggal_lahir),
+         jenis_kelamin = coalesce($7::jenis_kelamin, jenis_kelamin),
+         agama = coalesce($8, agama),
+         alamat_domisili = coalesce($9, alamat_domisili),
+         no_telepon_siswa = coalesce($10, no_telepon_siswa),
+         nama_ayah = coalesce($11, nama_ayah),
+         nama_ibu = coalesce($12, nama_ibu),
+         pekerjaan_ayah = coalesce($13, pekerjaan_ayah),
+         pekerjaan_ayah_lain = coalesce($14, pekerjaan_ayah_lain),
+         pekerjaan_ibu = coalesce($15, pekerjaan_ibu),
+         pekerjaan_ibu_lain = coalesce($16, pekerjaan_ibu_lain),
+         anak_ke = coalesce($17, anak_ke),
+         jumlah_saudara = coalesce($18, jumlah_saudara),
+         diterima_di_kelas = coalesce($19, diterima_di_kelas),
+         diterima_pada_tanggal = coalesce($20::date, diterima_pada_tanggal),
+         alamat_ortu = coalesce($21, alamat_ortu),
+         no_telepon_ortu = coalesce($22, no_telepon_ortu),
+         nama_wali = coalesce($23, nama_wali),
+         alamat_wali = coalesce($24, alamat_wali),
+         no_telepon_wali = coalesce($25, no_telepon_wali),
+         pekerjaan_wali = coalesce($26, pekerjaan_wali),
+         pekerjaan_wali_lain = coalesce($27, pekerjaan_wali_lain),
+         asal_sekolah = coalesce($28, asal_sekolah),
+         status_siswa = coalesce($29, status_siswa),
+         keterangan = coalesce($30, keterangan),
+         foto_url = coalesce($31, foto_url)
+       where id = $1`,
       [
-        toNull(s.namaLengkap),
+        newId,
         toNull(s.nik),
         toNull(s.nisn),
         toNull(s.nis),
@@ -239,7 +269,7 @@ export const handleUpsertStudent: RequestHandler = async (req, res) => {
         safeFotoUrl,
       ]
     );
-    res.json({ success: true, id: ins.rows[0].id });
+    res.json({ success: true, id: newId });
   } catch (e) {
     res.status(500).json({ success: false, error: (e as Error).message });
   }
