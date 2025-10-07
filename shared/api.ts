@@ -10,3 +10,19 @@
 export interface DemoResponse {
   message: string;
 }
+
+// Auth
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  user?: {
+    id: string;
+    username: string;
+    role: string;
+  };
+  error?: string;
+}
