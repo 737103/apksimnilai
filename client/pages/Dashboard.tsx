@@ -947,6 +947,8 @@ function DataSiswaForm() {
       const next = [record, ...curr];
       localStorage.setItem("sips_students", JSON.stringify(next));
       setStudents(next);
+      // sync new student to server
+      void syncStudentUpsert(record);
       toast.success("Data siswa tersimpan");
       // Dispatch event to notify other components
       window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'students' } }));
