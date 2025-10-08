@@ -254,15 +254,19 @@ function StatistikSection() {
     const monthlyData: { [key: string]: number[] } = {};
     
     filteredGrades.forEach((grade: any) => {
-      const date = new Date(grade.tanggal || grade.createdAt);
-      const month = date.getMonth(); // 0-11
+      const ts = grade.tanggal || grade.createdAt;
+      const date = ts ? new Date(ts) : null;
+      const isValidDate = date && !isNaN(date.getTime());
+      const month = isValidDate ? date!.getMonth() : undefined; // 0-11
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const monthName = monthNames[month];
+      const monthName = month !== undefined ? monthNames[month] : undefined;
       
-      if (!monthlyData[monthName]) {
-        monthlyData[monthName] = [];
+      if (monthName) {
+        if (!monthlyData[monthName]) {
+          monthlyData[monthName] = [];
+        }
+        monthlyData[monthName].push(Number(grade.nilai ?? 0));
       }
-      monthlyData[monthName].push(grade.nilai);
     });
 
     // Hitung rata-rata per bulan
@@ -282,9 +286,10 @@ function StatistikSection() {
     ];
 
     result.forEach(item => {
-      if (monthlyData[item.bulan]) {
-        const sum = monthlyData[item.bulan].reduce((a, b) => a + b, 0);
-        item.nilai = Math.round((sum / monthlyData[item.bulan].length) * 100) / 100;
+      const arr = monthlyData[item.bulan]?.filter((v) => Number.isFinite(v)) || [];
+      if (arr.length) {
+        const sum = arr.reduce((a, b) => a + b, 0);
+        item.nilai = Math.round((sum / arr.length) * 100) / 100;
       }
     });
 
@@ -325,17 +330,18 @@ function StatistikSection() {
         if (!subjectData[subjectName]) {
           subjectData[subjectName] = [];
         }
-        subjectData[subjectName].push(grade.nilai);
+        subjectData[subjectName].push(Number(grade.nilai ?? 0));
       }
     });
 
     return Object.entries(subjectData).map(([subject, values]) => {
-      const sum = values.reduce((a, b) => a + b, 0);
-      const average = Math.round((sum / values.length) * 100) / 100;
+      const clean = values.filter((v) => Number.isFinite(v));
+      const sum = clean.reduce((a, b) => a + b, 0);
+      const average = clean.length ? Math.round((sum / clean.length) * 100) / 100 : 0;
       return {
         mataPelajaran: subject,
         rataRata: average,
-        jumlahData: values.length
+        jumlahData: clean.length
       };
     }).sort((a, b) => b.rataRata - a.rataRata);
   }, [filteredGrades]);
@@ -362,15 +368,19 @@ function StatistikSection() {
     const monthlyAttendance: { [key: string]: number[] } = {};
     
     filteredAttendance.forEach((record: any) => {
-      const date = new Date(record.tanggal || record.createdAt);
-      const month = date.getMonth();
+      const ts = record.tanggal || record.createdAt;
+      const date = ts ? new Date(ts) : null;
+      const isValidDate = date && !isNaN(date.getTime());
+      const month = isValidDate ? date!.getMonth() : undefined;
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const monthName = monthNames[month];
+      const monthName = month !== undefined ? monthNames[month] : undefined;
       
-      if (!monthlyAttendance[monthName]) {
-        monthlyAttendance[monthName] = [];
+      if (monthName) {
+        if (!monthlyAttendance[monthName]) {
+          monthlyAttendance[monthName] = [];
+        }
+        monthlyAttendance[monthName].push(Number(record.persen ?? 0));
       }
-      monthlyAttendance[monthName].push(record.persen || 0);
     });
 
     const result = [
@@ -389,9 +399,10 @@ function StatistikSection() {
     ];
 
     result.forEach(item => {
-      if (monthlyAttendance[item.bulan]) {
-        const sum = monthlyAttendance[item.bulan].reduce((a, b) => a + b, 0);
-        item.kehadiran = Math.round((sum / monthlyAttendance[item.bulan].length) * 100) / 100;
+      const arr = monthlyAttendance[item.bulan]?.filter((v) => Number.isFinite(v)) || [];
+      if (arr.length) {
+        const sum = arr.reduce((a, b) => a + b, 0);
+        item.kehadiran = Math.round((sum / arr.length) * 100) / 100;
       }
     });
 
