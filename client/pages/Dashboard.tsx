@@ -492,13 +492,83 @@ function StatistikSection() {
       </Card>
 
       {/* Stats Overview (berdasarkan filter) */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-        <Stat number={filteredStats.totalStudents.toString()} label="Total Siswa" />
-        <Stat number={filteredStats.activeStudents.toString()} label="Siswa Aktif" />
-        <Stat number={filteredStats.totalGrades.toString()} label="Total Nilai" />
-        <Stat number={filteredStats.averageGrade.toString()} label="Rata-rata Nilai" />
-        <Stat number={filteredStats.totalAttendanceRecords.toString()} label="Record Kehadiran" />
-        <Stat number={`${filteredStats.averageAttendance}%`} label="Rata-rata Kehadiran" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Siswa dengan breakdown gender */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Total Siswa</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredStats.totalStudents}</div>
+            <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-2">
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span>Laki-laki: {filteredStats.maleStudents}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+                <span>Perempuan: {filteredStats.femaleStudents}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Siswa Aktif */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Siswa Aktif</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredStats.activeStudents}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {filteredStats.totalStudents > 0 
+                ? `${Math.round((filteredStats.activeStudents / filteredStats.totalStudents) * 100)}% dari total siswa`
+                : '0% dari total siswa'
+              }
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Total Nilai */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Total Nilai</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredStats.totalGrades}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Rata-rata: {filteredStats.averageGrade}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Record Kehadiran dengan breakdown */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Record Kehadiran</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredStats.totalAttendanceRecords}</div>
+            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mt-2">
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Hadir: {filteredStats.totalHadir}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <span>Alpa: {filteredStats.totalAlpa}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <span>Sakit: {filteredStats.totalSakit}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <span>Izin: {filteredStats.totalIzin}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Charts */}
@@ -629,18 +699,6 @@ function StatistikSection() {
   );
 }
 
-function Stat({ number, label }: { number: string; label: string }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm text-muted-foreground">{label}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-extrabold">{number}</div>
-      </CardContent>
-    </Card>
-  );
-}
 
 const agamaOptions = [
   "Islam",
