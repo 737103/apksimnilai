@@ -67,7 +67,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { DataManager } from "@/components/DataManager";
-import { getStatistics } from "@/lib/data";
+import { getStatistics, syncAllDataToDatabase } from "@/lib/data";
 import ReportPage from "./ReportPage";
 
 const menu = [
@@ -166,6 +166,20 @@ function StatistikSection() {
   // State untuk filter
   const [selectedTahunAjaran, setSelectedTahunAjaran] = React.useState<string>("all");
   const [selectedSemester, setSelectedSemester] = React.useState<string>("all");
+  const [isSyncing, setIsSyncing] = React.useState(false);
+
+  const handleSyncToDatabase = async () => {
+    setIsSyncing(true);
+    try {
+      await syncAllDataToDatabase();
+      toast.success("Data berhasil disinkronkan ke database Neon!");
+    } catch (error) {
+      toast.error("Gagal menyinkronkan data ke database");
+      console.error("Sync error:", error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
   
   // Ambil data nilai dari localStorage
   const grades = React.useMemo(() => {
@@ -400,7 +414,7 @@ function StatistikSection() {
           <CardTitle>Filter Data Statistik</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-[200px]">
               <label className="text-sm font-medium text-muted-foreground">Tahun Ajaran</label>
               <Select value={selectedTahunAjaran} onValueChange={setSelectedTahunAjaran}>
@@ -432,7 +446,7 @@ function StatistikSection() {
               </Select>
             </div>
             
-            <div className="flex items-end">
+            <div className="flex items-end gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -442,6 +456,16 @@ function StatistikSection() {
                 }}
               >
                 Reset Filter
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSyncToDatabase}
+                disabled={isSyncing}
+                className="flex items-center gap-2"
+              >
+                <Database className="h-4 w-4" />
+                {isSyncing ? "Menyinkronkan..." : "Sync ke Database"}
               </Button>
             </div>
           </div>

@@ -121,6 +121,30 @@ class DataManager<T> {
     }
   }
 
+  private async syncToDatabase(item: any, operation: 'create' | 'update' | 'delete'): Promise<void> {
+    try {
+      if (this.key === "sips_students") {
+        if (operation === 'delete') {
+          await fetch('/api/students/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+          });
+        } else {
+          await fetch('/api/students/upsert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+          });
+        }
+      }
+      // Add similar logic for grades and attendance if needed
+    } catch (error) {
+      console.error(`Error syncing to database:`, error);
+      // Don't throw error to prevent breaking the app if sync fails
+    }
+  }
+
   getAll(): T[] {
     // Always reload from localStorage to reflect latest cross-page updates
     this.load();
@@ -144,6 +168,10 @@ class DataManager<T> {
 
     this.data.unshift(newItem);
     this.save();
+    
+    // Sync to database asynchronously
+    this.syncToDatabase(newItem, 'create');
+    
     return newItem;
   }
 
@@ -159,6 +187,10 @@ class DataManager<T> {
 
     this.data[index] = updatedItem;
     this.save();
+    
+    // Sync to database asynchronously
+    this.syncToDatabase(updatedItem, 'update');
+    
     return updatedItem;
   }
 
@@ -166,8 +198,13 @@ class DataManager<T> {
     const index = this.data.findIndex((item: any) => item.id === id);
     if (index === -1) return false;
 
+    const deletedItem = this.data[index];
     this.data.splice(index, 1);
     this.save();
+    
+    // Sync to database asynchronously
+    this.syncToDatabase(deletedItem, 'delete');
+    
     return true;
   }
 
@@ -219,6 +256,30 @@ class DataManager<T> {
 export const studentManager = new DataManager<Student>("sips_students");
 export const gradeManager = new DataManager<Grade>("sips_grades");
 export const attendanceManager = new DataManager<Attendance>("sips_attendance");
+
+// Function to sync all existing data to database
+export async function syncAllDataToDatabase(): Promise<void> {
+  try {
+    const students = studentManager.getAll();
+    
+    // Sync all students to database
+    for (const student of students) {
+      try {
+        await fetch('/api/students/upsert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(student)
+        });
+      } catch (error) {
+        console.error(`Error syncing student ${student.namaLengkap}:`, error);
+      }
+    }
+    
+    console.log(`Synced ${students.length} students to database`);
+  } catch (error) {
+    console.error('Error syncing data to database:', error);
+  }
+}
 
 // Utility functions
 export function exportAllData(): string {

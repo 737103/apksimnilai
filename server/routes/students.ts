@@ -293,4 +293,20 @@ export const handleDeleteStudent: RequestHandler = async (req, res) => {
   }
 };
 
+export const handleTestConnection: RequestHandler = async (req, res) => {
+  try {
+    const result = await query("SELECT NOW() as current_time, version() as postgres_version");
+    res.json({ 
+      success: true, 
+      message: "Database connection successful",
+      data: result.rows[0]
+    });
+  } catch (e) {
+    res.status(500).json({ 
+      success: false, 
+      error: `Database connection failed: ${(e as Error).message}` 
+    });
+  }
+};
+
 
