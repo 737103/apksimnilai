@@ -422,26 +422,17 @@ function StatistikSection() {
     const maleStudents = students.filter((s: any) => s.jenisKelamin === "Laki-laki").length;
     const femaleStudents = students.filter((s: any) => s.jenisKelamin === "Perempuan").length;
     
-    // Attendance breakdown
-    const totalHadir = a.reduce((sum: number, r: any) => sum + (r.hadir || 0), 0);
-    const totalAlpa = a.reduce((sum: number, r: any) => sum + (r.alpa || 0), 0);
-    const totalSakit = a.reduce((sum: number, r: any) => sum + (r.sakit || 0), 0);
-    const totalIzin = a.reduce((sum: number, r: any) => sum + (r.izin || 0), 0);
 
-    return {
-      totalStudents,
-      activeStudents,
-      maleStudents,
-      femaleStudents,
-      totalGrades,
-      averageGrade,
-      totalAttendanceRecords,
-      averageAttendance,
-      totalHadir,
-      totalAlpa,
-      totalSakit,
-      totalIzin,
-    };
+           return {
+             totalStudents,
+             activeStudents,
+             maleStudents,
+             femaleStudents,
+             totalGrades,
+             averageGrade,
+             totalAttendanceRecords,
+             averageAttendance,
+           };
   }, [filteredGrades, filteredAttendance]);
 
   if (isLoading) {
@@ -626,33 +617,18 @@ function StatistikSection() {
           </CardContent>
         </Card>
 
-        {/* Record Kehadiran dengan breakdown */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Record Kehadiran</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{filteredStats.totalAttendanceRecords}</div>
-            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mt-2">
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Hadir: {filteredStats.totalHadir}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span>Alpa: {filteredStats.totalAlpa}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span>Sakit: {filteredStats.totalSakit}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <span>Izin: {filteredStats.totalIzin}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+               {/* Record Kehadiran dengan rata-rata */}
+               <Card>
+                 <CardHeader className="pb-2">
+                   <CardTitle className="text-sm text-muted-foreground">Record Kehadiran</CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                   <div className="text-2xl font-bold">{filteredStats.totalAttendanceRecords}</div>
+                   <p className="text-xs text-muted-foreground mt-1">
+                     Rata-rata: {filteredStats.averageAttendance}%
+                   </p>
+                 </CardContent>
+               </Card>
       </div>
 
       {/* Charts */}

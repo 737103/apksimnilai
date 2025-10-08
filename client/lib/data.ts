@@ -356,11 +356,6 @@ export function getStatistics() {
   const maleStudents = students.filter(s => s.jenisKelamin === "Laki-laki").length;
   const femaleStudents = students.filter(s => s.jenisKelamin === "Perempuan").length;
   
-  // Attendance breakdown
-  const totalHadir = attendance.reduce((sum, a) => sum + (a.hadir || 0), 0);
-  const totalAlpa = attendance.reduce((sum, a) => sum + (a.alpa || 0), 0);
-  const totalSakit = attendance.reduce((sum, a) => sum + (a.sakit || 0), 0);
-  const totalIzin = attendance.reduce((sum, a) => sum + (a.izin || 0), 0);
   
   const averageGrade = grades.length > 0 
     ? grades.reduce((sum, g) => sum + g.nilai, 0) / grades.length 
@@ -379,9 +374,5 @@ export function getStatistics() {
     averageGrade: Math.round(averageGrade * 100) / 100,
     totalAttendanceRecords: attendance.length,
     averageAttendance: Math.round(averageAttendance * 100) / 100,
-    totalHadir,
-    totalAlpa,
-    totalSakit,
-    totalIzin,
   };
 }
