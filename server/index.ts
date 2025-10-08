@@ -4,7 +4,7 @@ import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleLogin } from "./routes/login";
 import { handleSync } from "./routes/sync";
-import { handleUpsertStudent, handleDeleteStudent, handleTestConnection } from "./routes/students";
+import { handleUpsertStudent, handleDeleteStudent, handleTestConnection, handleGetAllStudents } from "./routes/students";
 import { handleUpsertGrade } from "./routes/grades";
 import { handleUpsertAttendance } from "./routes/attendance";
 
@@ -28,6 +28,7 @@ export function createServer() {
   app.post("/api/students/upsert", handleUpsertStudent);
   app.post("/api/students/delete", handleDeleteStudent);
   app.get("/api/students/test-connection", handleTestConnection);
+  app.get("/api/students", handleGetAllStudents);
   app.post("/api/grades/upsert", handleUpsertGrade);
   app.post("/api/attendance/upsert", handleUpsertAttendance);
 

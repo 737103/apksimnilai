@@ -327,6 +327,24 @@ export function importAllData(data: string): boolean {
   }
 }
 
+// Function to load students from database
+export async function loadStudentsFromDatabase(): Promise<Student[]> {
+  try {
+    const response = await fetch('/api/students');
+    const result = await response.json();
+    
+    if (result.success && result.data) {
+      // Update localStorage with data from database
+      localStorage.setItem("sips_students", JSON.stringify(result.data));
+      return result.data;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error loading students from database:', error);
+    return [];
+  }
+}
+
 export function getStatistics() {
   const students = studentManager.getAll();
   const grades = gradeManager.getAll();

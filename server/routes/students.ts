@@ -309,4 +309,58 @@ export const handleTestConnection: RequestHandler = async (req, res) => {
   }
 };
 
+export const handleGetAllStudents: RequestHandler = async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT 
+        id,
+        nama_lengkap as "namaLengkap",
+        nik,
+        nisn,
+        nis,
+        tempat_lahir as "tempatLahir",
+        tanggal_lahir as "tanggalLahir",
+        jenis_kelamin as "jenisKelamin",
+        agama,
+        alamat_domisili as "alamatDomisili",
+        no_telepon_siswa as "noTeleponSiswa",
+        nama_ayah as "namaAyah",
+        nama_ibu as "namaIbu",
+        pekerjaan_ayah as "pekerjaanAyah",
+        pekerjaan_ayah_lain as "pekerjaanAyahLain",
+        pekerjaan_ibu as "pekerjaanIbu",
+        pekerjaan_ibu_lain as "pekerjaanIbuLain",
+        anak_ke as "anakKe",
+        jumlah_saudara as "jumlahSaudara",
+        diterima_di_kelas as "diterimaDiKelas",
+        diterima_pada_tanggal as "diterimaPadaTanggal",
+        alamat_ortu as "alamatOrtu",
+        no_telepon_ortu as "noTeleponOrtu",
+        nama_wali as "namaWali",
+        alamat_wali as "alamatWali",
+        no_telepon_wali as "noTeleponWali",
+        pekerjaan_wali as "pekerjaanWali",
+        pekerjaan_wali_lain as "pekerjaanWaliLain",
+        asal_sekolah as "asalSekolah",
+        status_siswa as "statusSiswa",
+        keterangan,
+        foto_url as "fotoUrl",
+        created_at as "createdAt",
+        updated_at as "updatedAt"
+      FROM students 
+      ORDER BY created_at DESC
+    `);
+    
+    res.json({ 
+      success: true, 
+      data: result.rows 
+    });
+  } catch (e) {
+    res.status(500).json({ 
+      success: false, 
+      error: `Failed to fetch students: ${(e as Error).message}` 
+    });
+  }
+};
+
 

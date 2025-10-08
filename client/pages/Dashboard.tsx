@@ -67,7 +67,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { DataManager } from "@/components/DataManager";
-import { getStatistics, syncAllDataToDatabase } from "@/lib/data";
+import { getStatistics, syncAllDataToDatabase, loadStudentsFromDatabase } from "@/lib/data";
 import ReportPage from "./ReportPage";
 
 const menu = [
@@ -161,17 +161,38 @@ export default function Dashboard() {
 }
 
 function StatistikSection() {
-  const stats = getStatistics();
+  const [stats, setStats] = React.useState(getStatistics());
+  const [isLoading, setIsLoading] = React.useState(true);
   
   // State untuk filter
   const [selectedTahunAjaran, setSelectedTahunAjaran] = React.useState<string>("all");
   const [selectedSemester, setSelectedSemester] = React.useState<string>("all");
   const [isSyncing, setIsSyncing] = React.useState(false);
 
+  // Load data from database on component mount
+  React.useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await loadStudentsFromDatabase();
+        setStats(getStatistics());
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+
   const handleSyncToDatabase = async () => {
     setIsSyncing(true);
     try {
       await syncAllDataToDatabase();
+      // Reload data after sync
+      await loadStudentsFromDatabase();
+      setStats(getStatistics());
       toast.success("Data berhasil disinkronkan ke database Neon!");
     } catch (error) {
       toast.error("Gagal menyinkronkan data ke database");
@@ -379,7 +400,8 @@ function StatistikSection() {
 
   // Kartu ringkasan mengikuti filter aktif (setelah filteredAttendance tersedia)
   const filteredStats = React.useMemo(() => {
-    const totalStudents = JSON.parse(localStorage.getItem("sips_students") || "[]").length;
+    const students = JSON.parse(localStorage.getItem("sips_students") || "[]");
+    const totalStudents = students.length;
 
     const g = filteredGrades;
     const totalGrades = g.length;
@@ -394,17 +416,48 @@ function StatistikSection() {
       : 0;
 
     // Siswa aktif dihitung dari data siswa dengan status Aktif
-    const activeStudents = JSON.parse(localStorage.getItem("sips_students") || "[]").filter((s: any) => s.statusSiswa === "Aktif").length;
+    const activeStudents = students.filter((s: any) => s.statusSiswa === "Aktif").length;
+    
+    // Gender breakdown
+    const maleStudents = students.filter((s: any) => s.jenisKelamin === "Laki-laki").length;
+    const femaleStudents = students.filter((s: any) => s.jenisKelamin === "Perempuan").length;
+    
+    // Attendance breakdown
+    const totalHadir = a.reduce((sum: number, r: any) => sum + (r.hadir || 0), 0);
+    const totalAlpa = a.reduce((sum: number, r: any) => sum + (r.alpa || 0), 0);
+    const totalSakit = a.reduce((sum: number, r: any) => sum + (r.sakit || 0), 0);
+    const totalIzin = a.reduce((sum: number, r: any) => sum + (r.izin || 0), 0);
 
     return {
       totalStudents,
       activeStudents,
+      maleStudents,
+      femaleStudents,
       totalGrades,
       averageGrade,
       totalAttendanceRecords,
       averageAttendance,
+      totalHadir,
+      totalAlpa,
+      totalSakit,
+      totalIzin,
     };
   }, [filteredGrades, filteredAttendance]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Memuat data dari database...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -492,24 +545,55 @@ function StatistikSection() {
       </Card>
 
       {/* Stats Overview (berdasarkan filter) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Siswa dengan breakdown gender */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        {/* Total Siswa */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Total Siswa</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{filteredStats.totalStudents}</div>
-            <div className="flex items-center space-x-4 text-xs text-muted-foreground mt-2">
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>Laki-laki: {filteredStats.maleStudents}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-                <span>Perempuan: {filteredStats.femaleStudents}</span>
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Semua siswa terdaftar
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Jumlah Laki-laki */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              Laki-laki
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{filteredStats.maleStudents}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {filteredStats.totalStudents > 0 
+                ? `${Math.round((filteredStats.maleStudents / filteredStats.totalStudents) * 100)}% dari total`
+                : '0% dari total'
+              }
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Jumlah Perempuan */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+              <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+              Perempuan
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-pink-600">{filteredStats.femaleStudents}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {filteredStats.totalStudents > 0 
+                ? `${Math.round((filteredStats.femaleStudents / filteredStats.totalStudents) * 100)}% dari total`
+                : '0% dari total'
+              }
+            </p>
           </CardContent>
         </Card>
 
