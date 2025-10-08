@@ -810,15 +810,20 @@ export default function ReportPage() {
                         <TableCell>{att.mapel}</TableCell>
                         <TableCell>{att.hadir}/{att.hadir + att.alpa + att.sakit + att.izin}</TableCell>
                         <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            att.persen >= 80 
-                              ? 'bg-green-100 text-green-800' 
-                              : att.persen >= 60 
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {att.persen.toFixed(1)}%
-                          </span>
+                          {(() => {
+                            const persen = Number(att.persen ?? 0);
+                            const badgeClass =
+                              persen >= 80
+                                ? 'bg-green-100 text-green-800'
+                                : persen >= 60
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800';
+                            return (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`}>
+                                {Number.isFinite(persen) ? persen.toFixed(1) : '0.0'}%
+                              </span>
+                            );
+                          })()}
                         </TableCell>
                       </TableRow>
                     ))}

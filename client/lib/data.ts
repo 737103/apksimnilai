@@ -388,11 +388,11 @@ export function getStatistics() {
   
   
   const averageGrade = grades.length > 0 
-    ? grades.reduce((sum, g) => sum + g.nilai, 0) / grades.length 
+    ? grades.reduce((sum, g) => sum + Number(g.nilai ?? 0), 0) / grades.length 
     : 0;
 
   const averageAttendance = attendance.length > 0
-    ? attendance.reduce((sum, a) => sum + a.persen, 0) / attendance.length
+    ? attendance.reduce((sum, a) => sum + Number(a.persen ?? 0), 0) / attendance.length
     : 0;
 
   return {

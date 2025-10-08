@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { loginAsync } from "@/lib/auth";
+import { loginAsync, isAuthenticated } from "@/lib/auth";
 import { loadStudentsFromDatabase, loadGradesFromDatabase, loadAttendanceFromDatabase } from "@/lib/data";
 import { toast } from "sonner";
 
@@ -17,8 +17,7 @@ export default function Index() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const isAuthed = localStorage.getItem("sips_auth") === "true";
-    if (isAuthed) navigate("/dashboard");
+    if (isAuthenticated()) navigate("/dashboard");
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
