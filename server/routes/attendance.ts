@@ -53,4 +53,39 @@ export const handleUpsertAttendance: RequestHandler = async (req, res) => {
   }
 };
 
+export const handleGetAllAttendance: RequestHandler = async (_req, res) => {
+  try {
+    const { rows } = await query<any>(
+      `select 
+         a.id,
+         a.student_id,
+         s.nama_lengkap as "namaLengkap",
+         s.nik,
+         s.nisn,
+         s.nis,
+         a.mapel,
+         a.kelas,
+         a.tahun_ajaran as "tahunAjaran",
+         a.semester,
+         a.hadir,
+         a.alpa,
+         a.sakit,
+         a.izin,
+         coalesce(nullif(a.hadir + a.izin + a.sakit + a.alpa, 0), 0) as total_hari,
+         case when (a.hadir + a.izin + a.sakit + a.alpa) > 0 
+              then round((a.hadir::numeric / (a.hadir + a.izin + a.sakit + a.alpa)) * 100, 2)
+              else 0 end as "persen",
+         a.tanggal,
+         a.created_at as "createdAt",
+         a.updated_at as "updatedAt"
+       from attendance a
+       join students s on s.id = a.student_id
+       order by a.created_at desc`
+    );
+    res.json({ success: true, data: rows });
+  } catch (e) {
+    res.status(500).json({ success: false, error: (e as Error).message });
+  }
+};
+
 

@@ -55,4 +55,35 @@ export const handleUpsertGrade: RequestHandler = async (req, res) => {
   }
 };
 
+export const handleGetAllGrades: RequestHandler = async (_req, res) => {
+  try {
+    const { rows } = await query<any>(
+      `select 
+         g.id,
+         g.student_id,
+         s.nama_lengkap as "namaLengkap",
+         s.nik,
+         s.nisn,
+         s.nis,
+         g.mata_pelajaran as "mataPelajaran",
+         g.mata_pelajaran_lain as "mataPelajaranLain",
+         g.kelas,
+         g.tahun_ajaran as "tahunAjaran",
+         g.semester,
+         g.kompetensi,
+         g.nilai,
+         g.keterangan,
+         g.tanggal,
+         g.created_at as "createdAt",
+         g.updated_at as "updatedAt"
+       from grades g
+       join students s on s.id = g.student_id
+       order by g.created_at desc`
+    );
+    res.json({ success: true, data: rows });
+  } catch (e) {
+    res.status(500).json({ success: false, error: (e as Error).message });
+  }
+};
+
 

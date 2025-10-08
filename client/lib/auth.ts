@@ -9,12 +9,7 @@ function simpleHash(str: string): string {
   return hash.toString();
 }
 
-// In production, store hashed passwords in environment variables or database
-const VALID_CREDENTIALS = [
-  { username: "admin", passwordHash: simpleHash("admin123") },
-  { username: "guru", passwordHash: simpleHash("guru123") },
-  { username: "dalle", passwordHash: simpleHash("asrahabu") }
-];
+// Server-backed login
 
 export function isAuthenticated(): boolean {
   const authData = localStorage.getItem("sips_auth");
@@ -37,17 +32,23 @@ export function isAuthenticated(): boolean {
   }
 }
 
-export function login(username: string, password: string): boolean {
-  const user = VALID_CREDENTIALS.find(u => u.username === username);
-  if (!user || user.passwordHash !== simpleHash(password)) {
+export async function loginAsync(username: string, password: string): Promise<boolean> {
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const json = await res.json();
+    if (!res.ok || !json?.success) return false;
+
+    const sessionExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+    localStorage.setItem("sips_auth", JSON.stringify({ username, sessionExpiry }));
+    localStorage.setItem("sips_user", JSON.stringify({ username }));
+    return true;
+  } catch {
     return false;
   }
-  
-  const sessionExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
-  localStorage.setItem("sips_auth", JSON.stringify({ username, sessionExpiry }));
-  localStorage.setItem("sips_user", JSON.stringify({ username }));
-  
-  return true;
 }
 
 export function logout() {

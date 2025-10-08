@@ -345,6 +345,36 @@ export async function loadStudentsFromDatabase(): Promise<Student[]> {
   }
 }
 
+export async function loadGradesFromDatabase(): Promise<Grade[]> {
+  try {
+    const response = await fetch('/api/grades');
+    const result = await response.json();
+    if (result.success && result.data) {
+      localStorage.setItem("sips_grades", JSON.stringify(result.data));
+      return result.data;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error loading grades from database:', error);
+    return [];
+  }
+}
+
+export async function loadAttendanceFromDatabase(): Promise<Attendance[]> {
+  try {
+    const response = await fetch('/api/attendance');
+    const result = await response.json();
+    if (result.success && result.data) {
+      localStorage.setItem("sips_attendance", JSON.stringify(result.data));
+      return result.data;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error loading attendance from database:', error);
+    return [];
+  }
+}
+
 export function getStatistics() {
   const students = studentManager.getAll();
   const grades = gradeManager.getAll();

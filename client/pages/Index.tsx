@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { login } from "@/lib/auth";
+import { loginAsync } from "@/lib/auth";
+import { loadStudentsFromDatabase, loadGradesFromDatabase, loadAttendanceFromDatabase } from "@/lib/data";
 import { toast } from "sonner";
 
 const BG_URL =
@@ -20,7 +21,7 @@ export default function Index() {
     if (isAuthed) navigate("/dashboard");
   }, [navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     
@@ -29,7 +30,16 @@ export default function Index() {
       return;
     }
     
-    if (login(username, password)) {
+    const ok = await loginAsync(username, password);
+    if (ok) {
+      try {
+        // Setelah login, tarik data dari database ke localStorage
+        await Promise.all([
+          loadStudentsFromDatabase(),
+          loadGradesFromDatabase(),
+          loadAttendanceFromDatabase(),
+        ]);
+      } catch {}
       toast.success("Login berhasil!");
       navigate("/dashboard");
     } else {

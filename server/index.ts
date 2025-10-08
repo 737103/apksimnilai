@@ -5,8 +5,8 @@ import { handleDemo } from "./routes/demo";
 import { handleLogin } from "./routes/login";
 import { handleSync } from "./routes/sync";
 import { handleUpsertStudent, handleDeleteStudent, handleTestConnection, handleGetAllStudents } from "./routes/students";
-import { handleUpsertGrade } from "./routes/grades";
-import { handleUpsertAttendance } from "./routes/attendance";
+import { handleUpsertGrade, handleGetAllGrades } from "./routes/grades";
+import { handleUpsertAttendance, handleGetAllAttendance } from "./routes/attendance";
 
 export function createServer() {
   const app = express();
@@ -30,7 +30,9 @@ export function createServer() {
   app.get("/api/students/test-connection", handleTestConnection);
   app.get("/api/students", handleGetAllStudents);
   app.post("/api/grades/upsert", handleUpsertGrade);
+  app.get("/api/grades", handleGetAllGrades);
   app.post("/api/attendance/upsert", handleUpsertAttendance);
+  app.get("/api/attendance", handleGetAllAttendance);
 
   return app;
 }
