@@ -230,7 +230,7 @@ export function DataManager() {
     }
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     if (!importData.trim()) {
       toast.error("Data import tidak boleh kosong");
       return;
@@ -238,17 +238,45 @@ export function DataManager() {
 
     setIsLoading(true);
     try {
-      if (importAllData(importData)) {
-        toast.success("Data berhasil diimpor");
-        setImportData("");
-        setIsImportOpen(false);
-        // Dispatch event to notify other components
-        window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'all' } }));
-        // Refresh the page to update all components
-        setTimeout(() => window.location.reload(), 1000);
-      } else {
+      const parsed = JSON.parse(importData);
+      // Hapus semua data di Neon terlebih dahulu
+      await Promise.all([
+        fetch('/api/attendance', { method: 'DELETE' }),
+        fetch('/api/grades', { method: 'DELETE' }),
+        fetch('/api/students', { method: 'DELETE' }),
+      ]);
+
+      // Import ke local storage
+      if (!importAllData(importData)) {
         toast.error("Format data tidak valid");
+        setIsLoading(false);
+        return;
       }
+
+      // Susun payload sync dari local agar konsisten dengan struktur yang digunakan server
+      const payload = {
+        students: parsed.students ?? [],
+        grades: parsed.grades ?? [],
+        attendance: parsed.attendance ?? [],
+      };
+
+      // Sync ke Neon menggunakan endpoint /api/sync
+      const resp = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await resp.json();
+      if (!resp.ok || !result.success) {
+        toast.error("Sinkronisasi ke Neon gagal");
+      } else {
+        toast.success("Data berhasil diimpor dan disinkron ke Neon");
+      }
+
+      setImportData("");
+      setIsImportOpen(false);
+      window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'all' } }));
+      setTimeout(() => window.location.reload(), 800);
     } catch (error) {
       toast.error("Gagal mengimpor data");
     } finally {
@@ -256,7 +284,7 @@ export function DataManager() {
     }
   };
 
-  const handleFileImportAndProcess = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileImportAndProcess = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -268,23 +296,47 @@ export function DataManager() {
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
         const parsedData = JSON.parse(content);
-        
-        // Validate data format
         if (parsedData.students || parsedData.grades || parsedData.attendance || Array.isArray(parsedData)) {
-          // Auto-import the data
           setIsLoading(true);
-          if (importAllData(content)) {
-            toast.success("File berhasil diimpor dan data telah dimuat");
-            // Dispatch event to notify other components
-            window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'all' } }));
-            setTimeout(() => window.location.reload(), 1000);
-          } else {
+
+          // Hapus semua data di Neon
+          await Promise.all([
+            fetch('/api/attendance', { method: 'DELETE' }),
+            fetch('/api/grades', { method: 'DELETE' }),
+            fetch('/api/students', { method: 'DELETE' }),
+          ]);
+
+          // Import ke local
+          if (!importAllData(content)) {
             toast.error("Format data tidak valid");
+            setIsLoading(false);
+            return;
           }
+
+          // Sync ke Neon
+          const payload = {
+            students: parsedData.students ?? [],
+            grades: parsedData.grades ?? [],
+            attendance: parsedData.attendance ?? [],
+          };
+          const resp = await fetch('/api/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const result = await resp.json();
+          if (!resp.ok || !result.success) {
+            toast.error("Sinkronisasi ke Neon gagal");
+          } else {
+            toast.success("File berhasil diimpor dan disinkron ke Neon");
+          }
+
+          window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'all' } }));
+          setTimeout(() => window.location.reload(), 800);
           setIsLoading(false);
         } else {
           toast.error("Format file tidak valid. Pastikan file adalah export dari SIPS.");
