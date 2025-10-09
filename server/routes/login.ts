@@ -10,10 +10,19 @@ export const handleLogin: RequestHandler = async (req, res) => {
     console.log("/api/login request:", { contentType, bodyKeys });
   } catch {}
 
-  // Accept credentials from JSON, form-urlencoded, or query string as a fallback
-  const rawBody = (req.body as any) || {};
-  const username = (rawBody.username ?? (req.query as any)?.username) as string | undefined;
-  const password = (rawBody.password ?? (req.query as any)?.password) as string | undefined;
+  // Accept credentials from JSON, form-urlencoded, raw string, or query string as a fallback
+  let rawBody: any = (req.body as any) || {};
+  try {
+    if (typeof rawBody === "string" && rawBody.trim()) {
+      rawBody = JSON.parse(rawBody);
+    }
+    if (Buffer.isBuffer(rawBody)) {
+      const text = rawBody.toString("utf8");
+      rawBody = JSON.parse(text);
+    }
+  } catch {}
+  const username = (rawBody?.username ?? (req.query as any)?.username) as string | undefined;
+  const password = (rawBody?.password ?? (req.query as any)?.password) as string | undefined;
 
   if (!username || !password) {
     const response: LoginResponse = { success: false, error: "Username dan password wajib diisi" };
