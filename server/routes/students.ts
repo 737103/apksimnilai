@@ -293,6 +293,15 @@ export const handleDeleteStudent: RequestHandler = async (req, res) => {
   }
 };
 
+export const handleDeleteAllStudents: RequestHandler = async (_req, res) => {
+  try {
+    await query(`delete from students`);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: (e as Error).message });
+  }
+};
+
 export const handleTestConnection: RequestHandler = async (req, res) => {
   try {
     const result = await query("SELECT NOW() as current_time, version() as postgres_version");

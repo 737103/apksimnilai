@@ -88,4 +88,13 @@ export const handleGetAllAttendance: RequestHandler = async (_req, res) => {
   }
 };
 
+export const handleDeleteAllAttendance: RequestHandler = async (_req, res) => {
+  try {
+    await query(`delete from attendance`);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: (e as Error).message });
+  }
+};
+
 

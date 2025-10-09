@@ -86,4 +86,13 @@ export const handleGetAllGrades: RequestHandler = async (_req, res) => {
   }
 };
 
+export const handleDeleteAllGrades: RequestHandler = async (_req, res) => {
+  try {
+    await query(`delete from grades`);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: (e as Error).message });
+  }
+};
+
 

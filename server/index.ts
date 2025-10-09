@@ -4,9 +4,9 @@ import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleLogin } from "./routes/login";
 import { handleSync } from "./routes/sync";
-import { handleUpsertStudent, handleDeleteStudent, handleTestConnection, handleGetAllStudents } from "./routes/students";
-import { handleUpsertGrade, handleGetAllGrades } from "./routes/grades";
-import { handleUpsertAttendance, handleGetAllAttendance } from "./routes/attendance";
+import { handleUpsertStudent, handleDeleteStudent, handleTestConnection, handleGetAllStudents, handleDeleteAllStudents } from "./routes/students";
+import { handleUpsertGrade, handleGetAllGrades, handleDeleteAllGrades } from "./routes/grades";
+import { handleUpsertAttendance, handleGetAllAttendance, handleDeleteAllAttendance } from "./routes/attendance";
 
 export function createServer() {
   const app = express();
@@ -27,12 +27,15 @@ export function createServer() {
   app.post("/api/sync", handleSync);
   app.post("/api/students/upsert", handleUpsertStudent);
   app.post("/api/students/delete", handleDeleteStudent);
+  app.delete("/api/students", handleDeleteAllStudents);
   app.get("/api/students/test-connection", handleTestConnection);
   app.get("/api/students", handleGetAllStudents);
   app.post("/api/grades/upsert", handleUpsertGrade);
   app.get("/api/grades", handleGetAllGrades);
+  app.delete("/api/grades", handleDeleteAllGrades);
   app.post("/api/attendance/upsert", handleUpsertAttendance);
   app.get("/api/attendance", handleGetAllAttendance);
+  app.delete("/api/attendance", handleDeleteAllAttendance);
 
   return app;
 }

@@ -192,37 +192,39 @@ export function DataManager() {
     }
   };
 
-  const handleClearStudents = () => {
+  const handleClearStudents = async () => {
     try {
+      // Hapus di database (Neon)
+      await fetch('/api/students', { method: 'DELETE' });
+      // Hapus di local storage
       studentManager.clear();
-      toast.success("Data siswa telah dihapus");
-      // Dispatch event to notify other components
+      toast.success("Data siswa telah dihapus (lokal + Neon)");
       window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'students' } }));
-      setTimeout(() => window.location.reload(), 1000);
+      setTimeout(() => window.location.reload(), 800);
     } catch (error) {
       toast.error("Gagal menghapus data siswa");
     }
   };
 
-  const handleClearGrades = () => {
+  const handleClearGrades = async () => {
     try {
+      await fetch('/api/grades', { method: 'DELETE' });
       gradeManager.clear();
-      toast.success("Data nilai telah dihapus");
-      // Dispatch event to notify other components
+      toast.success("Data nilai telah dihapus (lokal + Neon)");
       window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'grades' } }));
-      setTimeout(() => window.location.reload(), 1000);
+      setTimeout(() => window.location.reload(), 800);
     } catch (error) {
       toast.error("Gagal menghapus data nilai");
     }
   };
 
-  const handleClearAttendance = () => {
+  const handleClearAttendance = async () => {
     try {
+      await fetch('/api/attendance', { method: 'DELETE' });
       attendanceManager.clear();
-      toast.success("Data kehadiran telah dihapus");
-      // Dispatch event to notify other components
+      toast.success("Data kehadiran telah dihapus (lokal + Neon)");
       window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'attendance' } }));
-      setTimeout(() => window.location.reload(), 1000);
+      setTimeout(() => window.location.reload(), 800);
     } catch (error) {
       toast.error("Gagal menghapus data kehadiran");
     }
@@ -300,7 +302,7 @@ export function DataManager() {
     event.target.value = '';
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (!confirm("PERINGATAN: Tindakan ini akan menghapus SEMUA data! Apakah Anda yakin?")) {
       return;
     }
@@ -310,13 +312,19 @@ export function DataManager() {
     }
 
     try {
+      // Jalankan penghapusan server paralel
+      await Promise.all([
+        fetch('/api/attendance', { method: 'DELETE' }),
+        fetch('/api/grades', { method: 'DELETE' }),
+        fetch('/api/students', { method: 'DELETE' })
+      ]);
+      // Hapus lokal
       studentManager.clear();
       gradeManager.clear();
       attendanceManager.clear();
-      toast.success("Semua data telah dihapus");
-      // Dispatch event to notify other components
+      toast.success("Semua data telah dihapus (lokal + Neon)");
       window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'all' } }));
-      setTimeout(() => window.location.reload(), 1000);
+      setTimeout(() => window.location.reload(), 800);
     } catch (error) {
       toast.error("Gagal menghapus data");
     }
