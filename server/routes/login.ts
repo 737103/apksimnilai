@@ -3,8 +3,19 @@ import { query } from "../db";
 import type { LoginRequest, LoginResponse } from "../../shared/api";
 
 export const handleLogin: RequestHandler = async (req, res) => {
-  const body = req.body as LoginRequest | undefined;
-  if (!body || !body.username || !body.password) {
+  // Basic diagnostics to help identify body parsing issues in serverless
+  try {
+    const contentType = req.headers["content-type"];
+    const bodyKeys = req.body && typeof req.body === "object" ? Object.keys(req.body) : [];
+    console.log("/api/login request:", { contentType, bodyKeys });
+  } catch {}
+
+  // Accept credentials from JSON, form-urlencoded, or query string as a fallback
+  const rawBody = (req.body as any) || {};
+  const username = (rawBody.username ?? (req.query as any)?.username) as string | undefined;
+  const password = (rawBody.password ?? (req.query as any)?.password) as string | undefined;
+
+  if (!username || !password) {
     const response: LoginResponse = { success: false, error: "Username dan password wajib diisi" };
     res.status(400).json(response);
     return;
@@ -21,7 +32,7 @@ export const handleLogin: RequestHandler = async (req, res) => {
         and password_hash = crypt($2, password_hash)
       limit 1
     `;
-    const { rows } = await query<{ id: string; username: string; role: string }>(sql, [body.username, body.password]);
+    const { rows } = await query<{ id: string; username: string; role: string }>(sql, [username, password]);
 
     if (rows.length === 0) {
       const response: LoginResponse = { success: false, error: "Username atau password salah" };
