@@ -2,6 +2,94 @@ import type { RequestHandler } from "express";
 import { query } from "../db";
 import type { SyncRequest, SyncResponse, SyncPayloadStudent, SyncPayloadGrade, SyncPayloadAttendance } from "@shared/api";
 
+async function ensureSchema() {
+  // Ensure required extension, types, and tables exist
+  await query(`create extension if not exists pgcrypto;`);
+  await query(`
+    do $$
+    begin
+      if not exists (select 1 from pg_type where typname = 'jenis_kelamin') then
+        create type jenis_kelamin as enum ('Laki-laki','Perempuan');
+      end if;
+    end$$;
+  `);
+
+  await query(`
+    create table if not exists students (
+      id uuid primary key default gen_random_uuid(),
+      nama_lengkap text not null,
+      nik text,
+      nisn text,
+      nis text,
+      tempat_lahir text,
+      tanggal_lahir date,
+      jenis_kelamin jenis_kelamin,
+      agama text,
+      alamat_domisili text,
+      no_telepon_siswa text,
+      nama_ayah text,
+      nama_ibu text,
+      pekerjaan_ayah text,
+      pekerjaan_ayah_lain text,
+      pekerjaan_ibu text,
+      pekerjaan_ibu_lain text,
+      anak_ke int,
+      jumlah_saudara int,
+      diterima_di_kelas text,
+      diterima_pada_tanggal date,
+      alamat_ortu text,
+      no_telepon_ortu text,
+      nama_wali text,
+      alamat_wali text,
+      no_telepon_wali text,
+      pekerjaan_wali text,
+      pekerjaan_wali_lain text,
+      asal_sekolah text,
+      status_siswa text,
+      keterangan text[],
+      foto_url text,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    );
+  `);
+
+  await query(`
+    create table if not exists grades (
+      id uuid primary key default gen_random_uuid(),
+      student_id uuid not null references students(id) on delete cascade,
+      mata_pelajaran text not null,
+      mata_pelajaran_lain text,
+      kelas text,
+      tahun_ajaran text,
+      semester text,
+      kompetensi text[] not null default '{}',
+      nilai numeric,
+      keterangan text,
+      tanggal date,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    );
+  `);
+
+  await query(`
+    create table if not exists attendance (
+      id uuid primary key default gen_random_uuid(),
+      student_id uuid not null references students(id) on delete cascade,
+      mapel text not null,
+      kelas text,
+      tahun_ajaran text,
+      semester text,
+      hadir int not null default 0,
+      alpa int not null default 0,
+      sakit int not null default 0,
+      izin int not null default 0,
+      tanggal date,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    );
+  `);
+}
+
 async function upsertStudent(s: SyncPayloadStudent): Promise<string> {
   // Choose a stable unique key preference: nisn > nis > nik; fallback to nama+tanggalLahir is unsafe, skip
   const keyValue = s.nisn || s.nis || s.nik;
@@ -206,6 +294,8 @@ export const handleSync: RequestHandler = async (req, res) => {
   let insertedAttendance = 0;
 
   try {
+    // Pastikan skema/tabel ada sebelum sinkronisasi
+    await ensureSchema();
     // Upsert students first and map local id -> db id
     const idMap = new Map<string, string>();
     for (const s of payload.students ?? []) {
