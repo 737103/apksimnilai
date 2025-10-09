@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import { query } from "../db";
-import type { SyncRequest, SyncResponse, SyncPayloadStudent, SyncPayloadGrade, SyncPayloadAttendance } from "@shared/api";
+import type { SyncRequest, SyncResponse, SyncPayloadStudent, SyncPayloadGrade, SyncPayloadAttendance } from "../../shared/api";
 
 async function ensureSchema() {
   // Ensure required extension, types, and tables exist

@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import { query } from "../db";
-import type { LoginRequest, LoginResponse } from "@shared/api";
+import type { LoginRequest, LoginResponse } from "../../shared/api";
 
 export const handleLogin: RequestHandler = async (req, res) => {
   const body = req.body as LoginRequest | undefined;
