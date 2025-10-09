@@ -34,14 +34,35 @@ export const handleLogin: RequestHandler = async (req, res) => {
     // Ensure pgcrypto is available for crypt() usage on Neon
     await query(`create extension if not exists pgcrypto;`);
 
-    const sql = `
-      select id, username, role
-      from app_user
-      where username = $1
-        and password_hash = crypt($2, password_hash)
-      limit 1
-    `;
-    const { rows } = await query<{ id: string; username: string; role: string }>(sql, [username, password]);
+    // First attempt: app_user
+    let rows: { id: string; username: string; role: string }[] = [];
+    try {
+      const sql = `
+        select id, username, role
+        from app_user
+        where username = $1
+          and password_hash = crypt($2, password_hash)
+        limit 1
+      `;
+      const result = await query<{ id: string; username: string; role: string }>(sql, [username, password]);
+      rows = result.rows;
+    } catch (e) {
+      // If table not found, fallback to legacy name app_users
+      const code = (e as any)?.code;
+      if (code === '42P01') {
+        const sqlFallback = `
+          select id, username, role
+          from app_users
+          where username = $1
+            and password_hash = crypt($2, password_hash)
+          limit 1
+        `;
+        const result = await query<{ id: string; username: string; role: string }>(sqlFallback, [username, password]);
+        rows = result.rows;
+      } else {
+        throw e;
+      }
+    }
 
     if (rows.length === 0) {
       const response: LoginResponse = { success: false, error: "Username atau password salah" };
@@ -56,6 +77,13 @@ export const handleLogin: RequestHandler = async (req, res) => {
     };
     res.json(response);
   } catch (err) {
+    // Log full error for diagnostics; return generic error to client
+    try {
+      console.error("/api/login error:", {
+        message: (err as any)?.message,
+        code: (err as any)?.code,
+      });
+    } catch {}
     const response: LoginResponse = { success: false, error: "Terjadi kesalahan pada server" };
     res.status(500).json(response);
   }
