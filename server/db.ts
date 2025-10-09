@@ -7,15 +7,35 @@ function getPool(): Pool {
     const connectionString = process.env.DATABASE_URL;
 
     if (connectionString) {
-      // Prefer connection string if provided (e.g. Netlify env var), keep SSL on Neon
+      // Sanitize and parse connection string to avoid unsupported options in Node pg
+      let url: URL;
+      try {
+        url = new URL(connectionString);
+      } catch {
+        // Fallback: let pg parse it if URL ctor fails
+        pool = new Pool({
+          connectionString,
+          ssl: { rejectUnauthorized: false },
+          max: 3,
+          idleTimeoutMillis: 10_000,
+          connectionTimeoutMillis: 10_000,
+        });
+        console.log("Connecting to database via connection string (env, raw)");
+        return pool;
+      }
+
+      // Remove options not used by node-postgres (e.g., channel_binding)
+      url.searchParams.delete("channel_binding");
+      const sanitized = url.toString();
+
       pool = new Pool({
-        connectionString,
+        connectionString: sanitized,
         ssl: { rejectUnauthorized: false },
         max: 3,
         idleTimeoutMillis: 10_000,
         connectionTimeoutMillis: 10_000,
       });
-      console.log("Connecting to database via connection string (env)");
+      console.log("Connecting to database via connection string (env, sanitized)");
     } else {
       // Fallback to explicit Neon credentials
       const config = {
