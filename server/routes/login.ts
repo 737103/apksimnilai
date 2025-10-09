@@ -11,9 +11,12 @@ export const handleLogin: RequestHandler = async (req, res) => {
   }
 
   try {
+    // Ensure pgcrypto is available for crypt() usage on Neon
+    await query(`create extension if not exists pgcrypto;`);
+
     const sql = `
       select id, username, role
-      from app_users
+      from app_user
       where username = $1
         and password_hash = crypt($2, password_hash)
       limit 1
