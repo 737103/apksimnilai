@@ -9,12 +9,21 @@ function getPool(): Pool {
     if (connectionString) {
       // Sanitize and parse connection string to avoid unsupported options in Node pg
       let url: URL;
+      let raw = connectionString.trim();
+      // Extract actual URL if env accidentally includes full psql command
       try {
-        url = new URL(connectionString);
+        const idxPg = Math.max(raw.indexOf("postgresql://"), raw.indexOf("postgres://"));
+        if (idxPg >= 0) raw = raw.slice(idxPg);
+        if ((raw.startsWith("'") && raw.endsWith("'")) || (raw.startsWith('"') && raw.endsWith('"'))) {
+          raw = raw.slice(1, -1);
+        }
+      } catch {}
+      try {
+        url = new URL(raw);
       } catch {
         // Fallback: let pg parse it if URL ctor fails
         pool = new Pool({
-          connectionString,
+          connectionString: raw,
           ssl: { rejectUnauthorized: false },
           max: 3,
           idleTimeoutMillis: 10_000,
