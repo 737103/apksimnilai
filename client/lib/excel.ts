@@ -135,7 +135,10 @@ export class ExcelExporter {
   }
 
   static exportAttendance(attendance: Attendance[], filename?: string) {
-    const data = attendance.map(att => ({
+    const data = attendance.map(att => {
+      const total = (att.hadir ?? 0) + (att.alpa ?? 0) + (att.sakit ?? 0) + (att.izin ?? 0);
+      const percentNum = total > 0 ? ((att.hadir ?? 0) / total) * 100 : 0;
+      return {
       'Nama Siswa': att.namaLengkap,
       'NIK': att.nik,
       'NISN': att.nisn,
@@ -145,11 +148,11 @@ export class ExcelExporter {
       'Alpa': att.alpa,
       'Sakit': att.sakit,
       'Izin': att.izin,
-      'Total Pertemuan': att.hadir + att.alpa + att.sakit + att.izin,
-      'Persentase Kehadiran': `${att.persen.toFixed(2)}%`,
+      'Total Pertemuan': total,
+      'Persentase Kehadiran': `${percentNum.toFixed(2)}%`,
       'Tanggal Input': new Date(att.tanggal).toLocaleDateString('id-ID'),
       'Tanggal Dibuat': new Date(att.createdAt).toLocaleDateString('id-ID')
-    }));
+    }; });
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
@@ -240,20 +243,24 @@ export class ExcelExporter {
     XLSX.utils.book_append_sheet(workbook, gradesSheet, 'Data Nilai');
 
     // Attendance sheet
-    const attendanceData = attendance.map(att => ({
-      'Nama Siswa': att.namaLengkap,
-      'NIK': att.nik,
-      'NISN': att.nisn,
-      'NIS': att.nis,
-      'Mata Pelajaran': att.mapel,
-      'Hadir': att.hadir,
-      'Alpa': att.alpa,
-      'Sakit': att.sakit,
-      'Izin': att.izin,
-      'Total Pertemuan': att.hadir + att.alpa + att.sakit + att.izin,
-      'Persentase Kehadiran': `${att.persen.toFixed(2)}%`,
-      'Tanggal Input': new Date(att.tanggal).toLocaleDateString('id-ID')
-    }));
+    const attendanceData = attendance.map(att => {
+      const total = (att.hadir ?? 0) + (att.alpa ?? 0) + (att.sakit ?? 0) + (att.izin ?? 0);
+      const percentNum = total > 0 ? ((att.hadir ?? 0) / total) * 100 : 0;
+      return {
+        'Nama Siswa': att.namaLengkap,
+        'NIK': att.nik,
+        'NISN': att.nisn,
+        'NIS': att.nis,
+        'Mata Pelajaran': att.mapel,
+        'Hadir': att.hadir,
+        'Alpa': att.alpa,
+        'Sakit': att.sakit,
+        'Izin': att.izin,
+        'Total Pertemuan': total,
+        'Persentase Kehadiran': `${percentNum.toFixed(2)}%`,
+        'Tanggal Input': new Date(att.tanggal).toLocaleDateString('id-ID')
+      };
+    });
 
     const attendanceSheet = XLSX.utils.json_to_sheet(attendanceData);
     XLSX.utils.book_append_sheet(workbook, attendanceSheet, 'Data Kehadiran');
