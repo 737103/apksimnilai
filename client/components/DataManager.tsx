@@ -42,7 +42,10 @@ import {
   studentManager, 
   gradeManager, 
   attendanceManager,
-  getStatistics
+  getStatistics,
+  loadStudentsFromDatabase,
+  loadGradesFromDatabase,
+  loadAttendanceFromDatabase
 } from "@/lib/data";
 
 export function DataManager() {
@@ -267,11 +270,21 @@ export function DataManager() {
         body: JSON.stringify(payload)
       });
       const result = await resp.json();
-      if (!resp.ok || !result.success) {
-        toast.error("Sinkronisasi ke Neon gagal");
+      if (!resp.ok) {
+        toast.error("Sinkronisasi ke Neon gagal (HTTP)");
+      } else if (!result.success) {
+        const errs = Array.isArray(result.errors) ? result.errors.slice(0, 3).join("; ") : "";
+        toast.error(`Sinkronisasi ke Neon sebagian gagal: ${errs}`);
       } else {
         toast.success("Data berhasil diimpor dan disinkron ke Neon");
       }
+
+      // Muat ulang data dari Neon ke local agar konsisten
+      await Promise.all([
+        loadStudentsFromDatabase(),
+        loadGradesFromDatabase(),
+        loadAttendanceFromDatabase(),
+      ]);
 
       setImportData("");
       setIsImportOpen(false);
@@ -329,11 +342,21 @@ export function DataManager() {
             body: JSON.stringify(payload)
           });
           const result = await resp.json();
-          if (!resp.ok || !result.success) {
-            toast.error("Sinkronisasi ke Neon gagal");
+          if (!resp.ok) {
+            toast.error("Sinkronisasi ke Neon gagal (HTTP)");
+          } else if (!result.success) {
+            const errs = Array.isArray(result.errors) ? result.errors.slice(0, 3).join("; ") : "";
+            toast.error(`Sinkronisasi ke Neon sebagian gagal: ${errs}`);
           } else {
             toast.success("File berhasil diimpor dan disinkron ke Neon");
           }
+
+          // Muat ulang data dari Neon ke local agar konsisten
+          await Promise.all([
+            loadStudentsFromDatabase(),
+            loadGradesFromDatabase(),
+            loadAttendanceFromDatabase(),
+          ]);
 
           window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { type: 'all' } }));
           setTimeout(() => window.location.reload(), 800);

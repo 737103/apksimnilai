@@ -90,6 +90,22 @@ async function ensureSchema() {
   `);
 }
 
+function toNull<T>(v: T): T | null {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  if (v === undefined || v === null) return null;
+  if (typeof v === 'string' && v.trim() === '') return null;
+  return v as any;
+}
+
+function normalizeGender(g?: string | null): 'Laki-laki' | 'Perempuan' | null {
+  if (!g) return null;
+  const s = String(g).toLowerCase().trim();
+  if (s === 'laki-laki' || s === 'laki laki' || s === 'l' || s === 'pria') return 'Laki-laki';
+  if (s === 'perempuan' || s === 'p' || s === 'wanita') return 'Perempuan';
+  return null;
+}
+
 async function upsertStudent(s: SyncPayloadStudent): Promise<string> {
   // Choose a stable unique key preference: nisn > nis > nik; fallback to nama+tanggalLahir is unsafe, skip
   const keyValue = s.nisn || s.nis || s.nik;
@@ -136,49 +152,49 @@ async function upsertStudent(s: SyncPayloadStudent): Promise<string> {
            pekerjaan_wali_lain = coalesce($28, pekerjaan_wali_lain),
            asal_sekolah = coalesce($29, asal_sekolah),
            status_siswa = coalesce($30, status_siswa),
-           keterangan = coalesce($31, keterangan),
+            keterangan = coalesce($31::text[], keterangan),
            foto_url = coalesce($32, foto_url)
          where id = $1`,
         [
           studentId,
-          s.namaLengkap,
-          s.nik ?? null,
-          s.nisn ?? null,
-          s.nis ?? null,
-          s.tempatLahir ?? null,
-          s.tanggalLahir ?? null,
-          s.jenisKelamin ?? null,
-          s.agama ?? null,
-          s.alamatDomisili ?? null,
-          s.noTeleponSiswa ?? null,
-          s.namaAyah ?? null,
-          s.namaIbu ?? null,
-          s.pekerjaanAyah ?? null,
-          s.pekerjaanAyahLain ?? null,
-          s.pekerjaanIbu ?? null,
-          s.pekerjaanIbuLain ?? null,
-          s.anakKe ?? null,
-          s.jumlahSaudara ?? null,
-          s.diterimaDiKelas ?? null,
-          s.diterimaPadaTanggal ?? null,
-          s.alamatOrtu ?? null,
-          s.noTeleponOrtu ?? null,
-          s.namaWali ?? null,
-          s.alamatWali ?? null,
-          s.noTeleponWali ?? null,
-          s.pekerjaanWali ?? null,
-          s.pekerjaanWaliLain ?? null,
-          s.asalSekolah ?? null,
-          s.statusSiswa ?? null,
-          s.keterangan ?? null,
-          s.fotoUrl ?? null,
+          toNull(s.namaLengkap),
+          toNull(s.nik),
+          toNull(s.nisn),
+          toNull(s.nis),
+          toNull(s.tempatLahir),
+          toNull(s.tanggalLahir),
+          normalizeGender(toNull(s.jenisKelamin) as any),
+          toNull(s.agama),
+          toNull(s.alamatDomisili),
+          toNull(s.noTeleponSiswa),
+          toNull(s.namaAyah),
+          toNull(s.namaIbu),
+          toNull(s.pekerjaanAyah),
+          toNull(s.pekerjaanAyahLain),
+          toNull(s.pekerjaanIbu),
+          toNull(s.pekerjaanIbuLain),
+          toNull(s.anakKe as any),
+          toNull(s.jumlahSaudara as any),
+          toNull(s.diterimaDiKelas),
+          toNull(s.diterimaPadaTanggal),
+          toNull(s.alamatOrtu),
+          toNull(s.noTeleponOrtu),
+          toNull(s.namaWali),
+          toNull(s.alamatWali),
+          toNull(s.noTeleponWali),
+          toNull(s.pekerjaanWali),
+          toNull(s.pekerjaanWaliLain),
+          toNull(s.asalSekolah),
+          toNull(s.statusSiswa),
+          toNull(s.keterangan as any),
+          toNull(s.fotoUrl),
         ]
       );
     }
   }
 
   if (!studentId) {
-    const insertSql = `
+  const insertSql = `
       insert into students (
         nama_lengkap, nik, nisn, nis, tempat_lahir, tanggal_lahir, jenis_kelamin, agama,
         alamat_domisili, no_telepon_siswa, nama_ayah, nama_ibu, pekerjaan_ayah, pekerjaan_ayah_lain,
@@ -186,41 +202,41 @@ async function upsertStudent(s: SyncPayloadStudent): Promise<string> {
         alamat_ortu, no_telepon_ortu, nama_wali, alamat_wali, no_telepon_wali, pekerjaan_wali, pekerjaan_wali_lain,
         asal_sekolah, status_siswa, keterangan, foto_url
       ) values (
-        $1,$2,$3,$4,$5,$6::date,$7::jenis_kelamin,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::date,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
+        $1,$2,$3,$4,$5,$6::date,$7::jenis_kelamin,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20::date,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31
       ) returning id
     `;
     const ins = await query<{ id: string }>(insertSql, [
-      s.namaLengkap,
-      s.nik ?? null,
-      s.nisn ?? null,
-      s.nis ?? null,
-      s.tempatLahir ?? null,
-      s.tanggalLahir ?? null,
-      s.jenisKelamin ?? null,
-      s.agama ?? null,
-      s.alamatDomisili ?? null,
-      s.noTeleponSiswa ?? null,
-      s.namaAyah ?? null,
-      s.namaIbu ?? null,
-      s.pekerjaanAyah ?? null,
-      s.pekerjaanAyahLain ?? null,
-      s.pekerjaanIbu ?? null,
-      s.pekerjaanIbuLain ?? null,
-      s.anakKe ?? null,
-      s.jumlahSaudara ?? null,
-      s.diterimaDiKelas ?? null,
-      s.diterimaPadaTanggal ?? null,
-      s.alamatOrtu ?? null,
-      s.noTeleponOrtu ?? null,
-      s.namaWali ?? null,
-      s.alamatWali ?? null,
-      s.noTeleponWali ?? null,
-      s.pekerjaanWali ?? null,
-      s.pekerjaanWaliLain ?? null,
-      s.asalSekolah ?? null,
-      s.statusSiswa ?? null,
-      s.keterangan ?? null,
-      s.fotoUrl ?? null,
+      toNull(s.namaLengkap),
+      toNull(s.nik),
+      toNull(s.nisn),
+      toNull(s.nis),
+      toNull(s.tempatLahir),
+      toNull(s.tanggalLahir),
+      normalizeGender(toNull(s.jenisKelamin) as any),
+      toNull(s.agama),
+      toNull(s.alamatDomisili),
+      toNull(s.noTeleponSiswa),
+      toNull(s.namaAyah),
+      toNull(s.namaIbu),
+      toNull(s.pekerjaanAyah),
+      toNull(s.pekerjaanAyahLain),
+      toNull(s.pekerjaanIbu),
+      toNull(s.pekerjaanIbuLain),
+      toNull(s.anakKe as any),
+      toNull(s.jumlahSaudara as any),
+      toNull(s.diterimaDiKelas),
+      toNull(s.diterimaPadaTanggal),
+      toNull(s.alamatOrtu),
+      toNull(s.noTeleponOrtu),
+      toNull(s.namaWali),
+      toNull(s.alamatWali),
+      toNull(s.noTeleponWali),
+      toNull(s.pekerjaanWali),
+      toNull(s.pekerjaanWaliLain),
+      toNull(s.asalSekolah),
+      toNull(s.statusSiswa),
+      toNull(s.keterangan as any),
+      toNull(s.fotoUrl),
     ]);
     studentId = ins.rows[0].id;
   }
@@ -234,19 +250,19 @@ async function insertGrade(g: SyncPayloadGrade, studentId: string) {
        student_id, mata_pelajaran, mata_pelajaran_lain, kelas, tahun_ajaran, semester,
        kompetensi, nilai, keterangan, tanggal
      ) values (
-       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::date
+       $1, $2, $3, $4, $5, $6, $7::text[], $8, $9, $10::date
      ) on conflict do nothing`,
     [
       studentId,
-      g.mataPelajaran,
-      g.mataPelajaranLain ?? null,
-      g.kelas,
-      g.tahunAjaran,
-      g.semester,
+      toNull(g.mataPelajaran),
+      toNull(g.mataPelajaranLain),
+      toNull(g.kelas),
+      toNull(g.tahunAjaran),
+      toNull(g.semester),
       g.kompetensi ?? [],
-      g.nilai,
-      g.keterangan ?? null,
-      g.tanggal,
+      toNull(g.nilai as any),
+      toNull(g.keterangan),
+      toNull(g.tanggal),
     ]
   );
 }
@@ -261,15 +277,15 @@ async function insertAttendance(a: SyncPayloadAttendance, studentId: string) {
      ) on conflict do nothing`,
     [
       studentId,
-      a.mapel,
-      a.kelas,
-      a.tahunAjaran,
-      a.semester,
-      a.hadir,
-      a.alpa,
-      a.sakit,
-      a.izin,
-      a.tanggal,
+      toNull(a.mapel),
+      toNull(a.kelas),
+      toNull(a.tahunAjaran),
+      toNull(a.semester),
+      toNull(a.hadir as any),
+      toNull(a.alpa as any),
+      toNull(a.sakit as any),
+      toNull(a.izin as any),
+      toNull(a.tanggal),
     ]
   );
 }
