@@ -7,6 +7,7 @@ import { handleSync } from "./routes/sync";
 import { handleUpsertStudent, handleDeleteStudent, handleTestConnection, handleGetAllStudents, handleDeleteAllStudents } from "./routes/students";
 import { handleUpsertGrade, handleGetAllGrades, handleDeleteAllGrades } from "./routes/grades";
 import { handleUpsertAttendance, handleGetAllAttendance, handleDeleteAllAttendance } from "./routes/attendance";
+import { handleUpsertUser, handleGetAllUsers, handleDeleteUser, handleInitUsers } from "./routes/users";
 
 export function createServer() {
   const app = express();
@@ -36,6 +37,12 @@ export function createServer() {
   app.post("/api/attendance/upsert", handleUpsertAttendance);
   app.get("/api/attendance", handleGetAllAttendance);
   app.delete("/api/attendance", handleDeleteAllAttendance);
+  
+  // User management routes
+  app.post("/api/users/upsert", handleUpsertUser);
+  app.get("/api/users", handleGetAllUsers);
+  app.post("/api/users/delete", handleDeleteUser);
+  app.post("/api/users/init", handleInitUsers);
 
   return app;
 }

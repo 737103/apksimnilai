@@ -79,11 +79,44 @@ Aplikasi Sistem Informasi Penilaian Siswa (SIPS) telah dianalisis dan diperbaiki
 
 ## 🔧 Kredensial Login
 
-Aplikasi sekarang mendukung multiple users:
+Aplikasi sekarang mendukung multiple users dengan database Neon PostgreSQL:
 
-- **Username:** `admin` | **Password:** `admin123`
-- **Username:** `guru` | **Password:** `guru123`  
-- **Username:** `dalle` | **Password:** `asrahabu`
+- **Username:** `admin` | **Password:** `admin123` | **Role:** `admin`
+- **Username:** `guru` | **Password:** `guru123` | **Role:** `teacher`
+- **Username:** `dalle` | **Password:** `asrahabu` | **Role:** `user`
+
+### 🔄 Cara Mengubah Username dan Password
+
+Untuk mengubah kredensial login, gunakan salah satu cara berikut:
+
+#### 1. Script Admin (Recommended)
+```bash
+# Windows PowerShell
+.\scripts\admin-users.ps1
+
+# Linux/macOS Bash
+./scripts/admin-users.sh
+
+# Node.js (Cross-platform)
+node scripts/admin-users.js
+```
+
+#### 2. API Endpoints
+```bash
+# Inisialisasi user default
+curl -X POST http://localhost:8080/api/users/init
+
+# Ubah password
+curl -X POST http://localhost:8080/api/users/upsert \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "password_baru"}'
+
+# Lihat daftar user
+curl -X GET http://localhost:8080/api/users
+```
+
+#### 3. Dokumentasi Lengkap
+Lihat file `USER_MANAGEMENT.md` untuk panduan lengkap mengelola user dan kredensial.
 
 ## 📋 Cara Menjalankan
 
