@@ -1,6 +1,42 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
+// Function to format date properly
+function formatDate(dateString: string | undefined): string {
+  if (!dateString) return '_________________';
+  
+  try {
+    // Handle different date formats
+    let date: Date;
+    
+    // If it's already a Date object or ISO string
+    if (dateString instanceof Date) {
+      date = dateString;
+    } else if (typeof dateString === 'string') {
+      // Remove any timezone info that might cause issues
+      const cleanDateString = dateString.replace(/T.*Z?$/, '');
+      date = new Date(cleanDateString);
+    } else {
+      return '_________________';
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return '_________________';
+    }
+    
+    // Format as DD/MM/YYYY
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error, 'Input:', dateString);
+    return '_________________';
+  }
+}
+
 export async function generateBiodataWord(student: any) {
   try {
     // Debug: Log student data to check if keteranganLain exists
@@ -51,7 +87,7 @@ export async function generateBiodataWord(student: any) {
         </div>
         
         <div style="margin-bottom: 8px;">
-          <p style="margin: 2px 0; font-size: 11px;"><strong>3. Tanggal Lahir</strong> : ${student.tanggalLahir || '_________________'}</p>
+          <p style="margin: 2px 0; font-size: 11px;"><strong>3. Tanggal Lahir</strong> : ${formatDate(student.tanggalLahir)}</p>
         </div>
         
         <div style="margin-bottom: 8px;">
@@ -85,7 +121,7 @@ export async function generateBiodataWord(student: any) {
           <div style="margin-bottom: 8px;">
             <p style="margin: 2px 0; font-size: 11px;"><strong>11. Diterima di sekolah ini</strong></p>
             <p style="margin: 1px 0 1px 15px; font-size: 11px;">a. Dikelas : ${student.diterimaDiKelas || '_________________'}</p>
-            <p style="margin: 1px 0 1px 15px; font-size: 11px;">b. Pada tanggal : ${student.diterimaPadaTanggal || '_________________'}</p>
+            <p style="margin: 1px 0 1px 15px; font-size: 11px;">b. Pada tanggal : ${formatDate(student.diterimaPadaTanggal)}</p>
           </div>
           
           <div style="margin-bottom: 8px;">
